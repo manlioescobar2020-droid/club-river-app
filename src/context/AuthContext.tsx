@@ -1,50 +1,81 @@
-import React, { createContext, useContext, useEffect, useState } from "react"
-import { getStoredSession, login as doLogin, logout as doLogout } from "../services/authService"
-import type { AuthSession } from "../types"
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { authService } from '../services/authService';
+import { colors } from '../theme';
+import { registerForPushNotificationsAsync, sendTokenToBackend } from '../services/notificationsService';
 
-type AuthContextValue = {
-  session: AuthSession | null
-  isLoading: boolean
-  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>
-  logout: () => Promise<void>
+interface AuthUser {
+  id: number;
+  email: string;
+  nombre: string;
+  apellido: string;
+  rol: string;
+  esTutor?: boolean;
+  debe_cambiar_password?: boolean;
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null)
+interface AuthContextType {
+  isAuthenticated: boolean;
+  user: AuthUser | null;
+  signIn: (user: AuthUser) => Promise<void>;
+  signOut: () => void;
+}
+
+const AuthContext = createContext<AuthContextType>({
+  isAuthenticated: false,
+  user: null,
+  signIn: async () => {},
+  signOut: () => {},
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession]   = useState<AuthSession | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Restaurar sesión persistida al arrancar
   useEffect(() => {
-    getStoredSession()
-      .then((s) => setSession(s))
-      .finally(() => setIsLoading(false))
-  }, [])
+    // Limpiar sesión guardada al iniciar para siempre arrancar sin usuario.
+    // Para restaurar el auto-login, reemplazar este bloque por restoreSession().
+    const clearAndInit = async () => {
+      try { await authService.logout(); } catch {}
+      setIsLoading(false);
+    };
+    clearAndInit();
+  }, []);
 
-  async function login(email: string, password: string) {
-    const result = await doLogin(email, password)
-    if (result.ok) {
-      setSession(result.session)
-      return { ok: true }
-    }
-    return { ok: false, error: result.error }
+  async function signIn(userData: AuthUser) {
+    setUser(userData);
+    setIsAuthenticated(true);
+
+    // Las notificaciones son opcionales — nunca deben bloquear ni crashear el login
+    registerForPushNotificationsAsync()
+      .then(pushToken => {
+        if (pushToken && userData.id) sendTokenToBackend(pushToken, userData.id);
+      })
+      .catch(() => {});
   }
 
-  async function logout() {
-    await doLogout()
-    setSession(null)
+  function signOut() {
+    authService.logout().catch(() => {});
+    setUser(null);
+    setIsAuthenticated(false);
+  }
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg }}>
+        <ActivityIndicator size="large" color={colors.red} />
+      </View>
+    );
   }
 
   return (
-    <AuthContext.Provider value={{ session, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider")
-  return ctx
+  return useContext(AuthContext);
 }

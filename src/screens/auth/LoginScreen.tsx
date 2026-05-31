@@ -1,211 +1,328 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Image,
+  Alert,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   ScrollView,
-  Alert,
-} from "react-native"
-import { StatusBar } from "expo-status-bar"
-import { useAuth } from "../../context/AuthContext"
+  ActivityIndicator,
+  Animated,
+  useWindowDimensions,
+} from 'react-native';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
+import { authService } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
+import { colors, radius, typography } from '../../theme';
 
-export function LoginScreen() {
-  const { login } = useAuth()
+export default function LoginScreen() {
+  const { signIn } = useAuth();
+  const navigation = useNavigation<any>();
+  const { height } = useWindowDimensions();
 
-  const [email, setEmail]       = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState<string | null>(null)
+  const [email, setEmail]             = useState('');
+  const [password, setPassword]       = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading]         = useState(false);
 
-  async function handleLogin() {
-    if (!email.trim() || !password.trim()) {
-      setError("Completá todos los campos")
-      return
+  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Por favor completá todos los campos');
+      return;
     }
-    setError(null)
-    setLoading(true)
-    const result = await login(email.trim().toLowerCase(), password)
-    setLoading(false)
-    if (!result.ok) {
-      setError(result.error ?? "Credenciales incorrectas")
+    setLoading(true);
+    try {
+      const response = await authService.login(email, password);
+      await signIn(response.user);
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Error al iniciar sesión');
+    } finally {
+      setLoading(false);
     }
-    // Si ok=true, el AuthContext actualiza `session` y el navigator redirige automáticamente
-  }
+  };
+
+  const HEADER_HEIGHT = height * 0.40;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <StatusBar style="light" />
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
+    <View style={styles.root}>
+      <View
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: HEADER_HEIGHT + 40, backgroundColor: colors.red }}
+      />
+
+      {/* Header: logo + nombre del club */}
+      <View style={[styles.header, { height: HEADER_HEIGHT }]}>
+        <View style={styles.logoWrapper}>
+          <Image
+            source={require('../../../assets/icon.png')}
+            style={styles.logo}
+          />
+        </View>
+        <Text style={styles.clubName}>CLUB RIVER PLATE</Text>
+        <Text style={styles.clubSub}>Santo Tomé · Corrientes</Text>
+      </View>
+
+      {/* Body con curva blanca */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* Logo / header */}
-        <View style={styles.header}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>RP</Text>
-          </View>
-          <Text style={styles.clubName}>River Plate</Text>
-          <Text style={styles.clubSub}>Santo Tomé</Text>
-        </View>
-
-        {/* Card */}
-        <View style={styles.card}>
-          <Text style={styles.title}>Iniciar sesión</Text>
-          <Text style={styles.subtitle}>Ingresá con tu cuenta del club</Text>
-
-          {/* Email */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={[styles.input, error ? styles.inputError : null]}
-              placeholder="tu@email.com"
-              placeholderTextColor="#aaa"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              value={email}
-              onChangeText={(t) => { setEmail(t); setError(null) }}
-              editable={!loading}
-            />
-          </View>
-
-          {/* Password */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Contraseña</Text>
-            <TextInput
-              style={[styles.input, error ? styles.inputError : null]}
-              placeholder="••••••••"
-              placeholderTextColor="#aaa"
-              secureTextEntry
-              value={password}
-              onChangeText={(t) => { setPassword(t); setError(null) }}
-              editable={!loading}
-              onSubmitEditing={handleLogin}
-              returnKeyType="done"
-            />
-          </View>
-
-          {/* Error */}
-          {error && (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          )}
-
-          {/* Botón */}
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.8}
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          <Animated.View
+            style={[
+              styles.formContainer,
+              { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+            ]}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.buttonText}>Ingresar</Text>
-            )}
-          </TouchableOpacity>
+            <Text style={styles.formTitle}>INICIÁ SESIÓN</Text>
 
-          <Text style={styles.helpText}>
-            ¿Olvidaste tu contraseña?{" "}
-            <Text style={styles.helpLink}>Contactá al administrador</Text>
-          </Text>
-        </View>
+            {/* Email */}
+            <View style={styles.inputWrapper}>
+              <MaterialCommunityIcons
+                name="email-outline"
+                size={20}
+                color={colors.muted}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                placeholder="Email"
+                placeholderTextColor={colors.muted}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                editable={!loading}
+                style={styles.input}
+              />
+            </View>
 
-        <Text style={styles.footer}>Club River Plate Santo Tomé © 2025</Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  )
+            {/* Contraseña */}
+            <View style={styles.inputWrapper}>
+              <MaterialCommunityIcons
+                name="lock-outline"
+                size={20}
+                color={colors.muted}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                placeholder="Contraseña"
+                placeholderTextColor={colors.muted}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                editable={!loading}
+                style={styles.input}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(p => !p)}
+                style={styles.eyeBtn}
+              >
+                <MaterialCommunityIcons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color={colors.muted}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Botón ingresar */}
+            <TouchableOpacity
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.85}
+              style={[styles.loginBtnOuter, loading && styles.loginBtnDisabled]}
+            >
+              <View style={styles.loginBtn}>
+                {loading
+                  ? <ActivityIndicator color={colors.text} size="small" />
+                  : <Text style={styles.loginBtnLabel}>Ingresar al club</Text>
+                }
+              </View>
+            </TouchableOpacity>
+
+            {/* Olvidé contraseña */}
+            <TouchableOpacity style={styles.forgotBtn} onPress={() => {}}>
+              <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
+            </TouchableOpacity>
+
+            {/* Separador */}
+            <View style={styles.separatorRow}>
+              <View style={styles.separatorLine} />
+              <Text style={styles.separatorText}>o</Text>
+              <View style={styles.separatorLine} />
+            </View>
+
+            {/* Inscribirse */}
+            <TouchableOpacity style={styles.registerBtn} onPress={() => {}}>
+              <Text style={styles.registerText}>Inscribirse al club →</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
+  );
 }
 
-const RED = "#DC2626"
-
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: RED },
-
-  container: {
-    flexGrow: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 48,
+  root: {
+    flex: 1,
+    backgroundColor: colors.bg,
   },
 
-  header: { alignItems: "center", marginBottom: 32 },
-  logoCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
+  /* ── Header ── */
+  header: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 52,
+  },
+  logoWrapper: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: colors.glass,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.4)",
+    borderColor: colors.glassBorder,
   },
-  logoText:  { fontSize: 26, fontWeight: "800", color: "#fff" },
-  clubName:  { fontSize: 24, fontWeight: "700", color: "#fff" },
-  clubSub:   { fontSize: 14, color: "rgba(255,255,255,0.75)", marginTop: 2 },
+  logo: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+  },
+  clubName: {
+    ...typography.display,
+    fontSize: 26,
+    color: colors.text,
+    marginBottom: 4,
+  },
+  clubSub: {
+    ...typography.body,
+    fontSize: 13,
+    color: colors.text,
+  },
 
-  card: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 28,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
+  /* ── Formulario ── */
+  formContainer: {
+    backgroundColor: colors.bg,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    paddingTop: 36,
+    paddingHorizontal: 24,
+    paddingBottom: 48,
+    gap: 14,
+    minHeight: 420,
+  },
+  formTitle: {
+    ...typography.display,
+    fontSize: 30,
+    color: colors.text,
+    marginBottom: 6,
+  },
+
+  /* ── Inputs ── */
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.glassBorder,
+    borderRadius: radius.sm + 2,
+    paddingHorizontal: 14,
+    height: 54,
+  },
+  inputIcon: { marginRight: 10 },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: colors.text,
+    ...typography.body,
+  },
+  eyeBtn: { padding: 4 },
+
+  /* ── Botón principal ── */
+  loginBtnOuter: {
+    borderRadius: radius.sm + 2,
+    overflow: 'hidden',
+    shadowColor: colors.red,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
     shadowRadius: 16,
     elevation: 8,
-  },
-  title:    { fontSize: 22, fontWeight: "700", color: "#111", marginBottom: 4 },
-  subtitle: { fontSize: 14, color: "#666", marginBottom: 24 },
-
-  inputGroup: { marginBottom: 16 },
-  label:  { fontSize: 13, fontWeight: "600", color: "#444", marginBottom: 6 },
-  input: {
-    borderWidth: 1.5,
-    borderColor: "#e5e7eb",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: "#111",
-    backgroundColor: "#fafafa",
-  },
-  inputError: { borderColor: RED },
-
-  errorBox: {
-    backgroundColor: "#fef2f2",
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 16,
-    borderLeftWidth: 3,
-    borderLeftColor: RED,
-  },
-  errorText: { color: RED, fontSize: 13, fontWeight: "500" },
-
-  button: {
-    backgroundColor: RED,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: "center",
     marginTop: 4,
-    marginBottom: 16,
   },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  loginBtnDisabled: { opacity: 0.6 },
+  loginBtn: {
+    height:          54,
+    alignItems:      'center',
+    justifyContent:  'center',
+    backgroundColor: colors.red,
+  },
+  loginBtnLabel: {
+    ...typography.bodyBold,
+    color: colors.text,
+    fontSize: 16,
+  },
 
-  helpText: { textAlign: "center", fontSize: 13, color: "#888" },
-  helpLink: { color: RED, fontWeight: "600" },
+  /* ── Links ── */
+  forgotBtn: { alignItems: 'center', paddingVertical: 2 },
+  forgotText: {
+    ...typography.bodyMedium,
+    fontSize: 14,
+    color: colors.red,
+  },
 
-  footer: { marginTop: 32, fontSize: 12, color: "rgba(255,255,255,0.5)" },
-})
+  /* ── Separador ── */
+  separatorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginVertical: 2,
+  },
+  separatorLine: { flex: 1, height: 1, backgroundColor: colors.border },
+  separatorText: {
+    ...typography.body,
+    fontSize: 13,
+    color: colors.muted,
+  },
+
+  /* ── Inscribirse ── */
+  registerBtn: { alignItems: 'center', paddingVertical: 4 },
+  registerText: {
+    ...typography.bodySemiBold,
+    fontSize: 15,
+    color: colors.redBright,
+  },
+});

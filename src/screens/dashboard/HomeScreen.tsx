@@ -1,10 +1,10 @@
 import React from "react"
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
 import { useAuth } from "../../context/AuthContext"
+import { colors, radius, typography } from "../../theme"
 
 export function HomeScreen() {
-  const { session, logout } = useAuth()
-  const user = session?.usuario
+  const { user, signOut: logout } = useAuth()
 
   return (
     <View style={styles.container}>
@@ -28,26 +28,26 @@ export function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9fafb", padding: 24 },
+  container: { flex: 1, backgroundColor: colors.bg, padding: 24 },
   header: { marginTop: 16, marginBottom: 24 },
-  greeting: { fontSize: 22, fontWeight: "700", color: "#111" },
-  rol: { fontSize: 14, color: "#666", marginTop: 4 },
+  greeting: { ...typography.bodyBold, fontSize: 22, color: colors.text },
+  rol: { ...typography.body, fontSize: 14, color: colors.muted, marginTop: 4 },
 
   card: {
-    backgroundColor: "#DC2626",
-    borderRadius: 16,
+    backgroundColor: colors.red,
+    borderRadius: radius.lg,
     padding: 24,
     marginBottom: 24,
   },
-  cardTitle: { fontSize: 20, fontWeight: "700", color: "#fff" },
-  cardSub: { fontSize: 14, color: "rgba(255,255,255,0.8)", marginTop: 4 },
+  cardTitle: { ...typography.bodyBold, fontSize: 20, color: colors.text },
+  cardSub: { ...typography.body, fontSize: 14, color: colors.text, opacity: 0.8, marginTop: 4 },
 
   logoutBtn: {
     borderWidth: 1.5,
-    borderColor: "#DC2626",
-    borderRadius: 12,
+    borderColor: colors.red,
+    borderRadius: radius.md,
     padding: 14,
     alignItems: "center",
   },
-  logoutText: { color: "#DC2626", fontWeight: "600", fontSize: 15 },
+  logoutText: { ...typography.bodySemiBold, color: colors.red, fontSize: 15 },
 })

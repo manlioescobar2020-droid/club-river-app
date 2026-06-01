@@ -36,7 +36,10 @@ export async function registerForPushNotificationsAsync(): Promise<string | unde
 
   if (finalStatus !== 'granted') return undefined;
 
-  const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+  const projectId =
+    Constants.easConfig?.projectId ??
+    Constants.expoConfig?.extra?.eas?.projectId;
+  console.log('[PUSH] projectId resuelto:', projectId);
   if (!projectId) return undefined;
 
   const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });

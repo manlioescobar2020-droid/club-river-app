@@ -60,7 +60,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const response = await authService.login(email, password);
-      await signIn(response.user);
+      await signIn(response.user, response.token);
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Error al iniciar sesión');

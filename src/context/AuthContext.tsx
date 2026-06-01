@@ -17,7 +17,7 @@ interface AuthUser {
 interface AuthContextType {
   isAuthenticated: boolean;
   user: AuthUser | null;
-  signIn: (user: AuthUser) => Promise<void>;
+  signIn: (user: AuthUser, token?: string) => Promise<void>;
   signOut: () => void;
 }
 
@@ -43,19 +43,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearAndInit();
   }, []);
 
-  async function signIn(userData: AuthUser) {
+  async function signIn(userData: AuthUser, token?: string) {
     setUser(userData);
     setIsAuthenticated(true);
 
     // Las notificaciones son opcionales — nunca deben bloquear ni crashear el login
     registerForPushNotificationsAsync()
       .then(async pushToken => {
-        if (pushToken) {
-          const session = await authService.getStoredSession();
-          if (session?.token) sendTokenToBackend(pushToken, session.token).catch(() => {});
+        if (pushToken && token) {
+          sendTokenToBackend(pushToken, token).catch(() => {});
         }
       })
-      .catch(() => {});
+      .catch((error) => console.warn('[PUSH] Error al registrar:', error));
   }
 
   function signOut() {

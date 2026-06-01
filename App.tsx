@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { ThemeProvider } from './src/context/ThemeContext';
 import { AlquilerProvider } from './src/context/AlquilerContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ChatProvider, useChatContext } from './src/context/ChatContext';
@@ -63,9 +62,5 @@ export default function App() {
     );
   }
 
-  return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
-  );
+  return <AppContent />;
 }

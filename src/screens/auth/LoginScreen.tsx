@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -33,10 +33,6 @@ export default function LoginScreen() {
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
-  useLayoutEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
-
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -61,7 +57,7 @@ export default function LoginScreen() {
     try {
       const response = await authService.login(email, password);
       await signIn(response.user, response.token);
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+      // AppNavigator switches to PrivateNavigator automatically on auth state change
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Error al iniciar sesión');
     } finally {
@@ -79,6 +75,15 @@ export default function LoginScreen() {
 
       {/* Header: logo + nombre del club */}
       <View style={[styles.header, { height: HEADER_HEIGHT }]}>
+        {navigation.canGoBack() && (
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+          >
+            <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
+          </TouchableOpacity>
+        )}
         <View style={styles.logoWrapper}>
           <Image
             source={require('../../../assets/icon.png')}
@@ -184,7 +189,10 @@ export default function LoginScreen() {
             </View>
 
             {/* Inscribirse */}
-            <TouchableOpacity style={styles.registerBtn} onPress={() => {}}>
+            <TouchableOpacity
+              style={styles.registerBtn}
+              onPress={() => navigation.navigate('InscripcionPublica')}
+            >
               <Text style={styles.registerText}>Inscribirse al club →</Text>
             </TouchableOpacity>
           </Animated.View>
@@ -201,6 +209,15 @@ const styles = StyleSheet.create({
   },
 
   /* ── Header ── */
+  backBtn: {
+    position:        'absolute',
+    top:             52,
+    left:            20,
+    zIndex:          10,
+    backgroundColor: 'rgba(0,0,0,0.20)',
+    borderRadius:    20,
+    padding:         8,
+  },
   header: {
     alignItems: 'center',
     justifyContent: 'flex-end',

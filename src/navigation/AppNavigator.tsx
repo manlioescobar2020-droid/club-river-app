@@ -5,11 +5,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import LoginScreen from '../screens/auth/LoginScreen';
-import InicioScreen from '../screens/inicio/InicioScreen';
+import InicioPublicoScreen from '../screens/public/InicioPublicoScreen';
+import NoticiasScreen from '../screens/noticias/NoticiasScreen';
 import InfoClubScreen from '../screens/public/InfoClubScreen';
+import LoginScreen from '../screens/auth/LoginScreen';
 import AlquileresStack from './AlquileresStack';
 import DisciplinasStack from './DisciplinasStack';
+
+import InicioScreen from '../screens/inicio/InicioScreen';
 import PerfilStackNavigator from './PerfilStack';
 import MisClasesStack from './MisClasesStack';
 import MisCategoriasScreen from '../screens/participantes/MisCategoriasScreen';
@@ -31,8 +34,8 @@ const NAV_THEME = {
   },
 };
 
-const RootStack = createNativeStackNavigator();
-const Tab       = createBottomTabNavigator();
+const PubStack = createNativeStackNavigator();
+const PrivTab  = createBottomTabNavigator();
 
 type TabIconProps = {
   name: React.ComponentProps<typeof Ionicons>['name'];
@@ -52,7 +55,51 @@ function TabIcon({ name, focused, color, badge }: TabIconProps) {
   );
 }
 
-function MainTabs() {
+function PublicNavigator() {
+  return (
+    <PubStack.Navigator
+      screenOptions={{
+        headerStyle:         { backgroundColor: colors.surface },
+        headerTintColor:     colors.red,
+        headerTitleStyle:    { fontWeight: '600' },
+        headerShadowVisible: false,
+      }}
+    >
+      <PubStack.Screen
+        name="InicioPublico"
+        component={InicioPublicoScreen}
+        options={{ headerShown: false }}
+      />
+      <PubStack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+      <PubStack.Screen
+        name="Noticias"
+        component={NoticiasScreen}
+        options={{ title: 'Noticias', headerBackTitle: 'Volver' }}
+      />
+      <PubStack.Screen
+        name="Alquileres"
+        component={AlquileresStack}
+        options={{ headerShown: false }}
+      />
+      <PubStack.Screen
+        name="InscripcionPublica"
+        component={DisciplinasStack}
+        options={{ headerShown: false }}
+      />
+      <PubStack.Screen
+        name="InfoClub"
+        component={InfoClubScreen}
+        options={{ title: 'Información del Club', headerBackTitle: 'Volver' }}
+      />
+    </PubStack.Navigator>
+  );
+}
+
+function PrivateNavigator() {
   const { user }                 = useAuth();
   const { state: alquilerState } = useAlquiler();
 
@@ -62,7 +109,7 @@ function MainTabs() {
   const hasPendingReservation = alquilerState.tipoEspacio !== null;
 
   return (
-    <Tab.Navigator
+    <PrivTab.Navigator
       screenOptions={{
         tabBarActiveTintColor:   colors.red,
         tabBarInactiveTintColor: colors.muted,
@@ -80,28 +127,21 @@ function MainTabs() {
           fontWeight:    '700',
           letterSpacing: 0.3,
         },
-        tabBarItemStyle: {
-          flex: 1,
-        },
+        tabBarItemStyle: { flex: 1 },
         headerShown: false,
       }}
     >
-      <Tab.Screen
+      <PrivTab.Screen
         name="Inicio"
         component={InicioScreen}
         options={{
           tabBarLabel: 'INICIO',
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon
-              name={focused ? 'home' : 'home-outline'}
-              focused={focused}
-              color={color}
-            />
+            <TabIcon name={focused ? 'home' : 'home-outline'} focused={focused} color={color} />
           ),
         }}
       />
-
-      <Tab.Screen
+      <PrivTab.Screen
         name="Alquileres"
         component={AlquileresStack}
         options={{
@@ -116,119 +156,72 @@ function MainTabs() {
           ),
         }}
       />
-
       {isParticipante ? (
-        <Tab.Screen
+        <PrivTab.Screen
           name="Categorías"
           component={MisCategoriasScreen}
           options={{
             tabBarLabel: 'CATEG.',
             tabBarIcon: ({ focused, color }) => (
-              <TabIcon
-                name={focused ? 'ribbon' : 'ribbon-outline'}
-                focused={focused}
-                color={color}
-              />
+              <TabIcon name={focused ? 'ribbon' : 'ribbon-outline'} focused={focused} color={color} />
             ),
           }}
         />
       ) : (
-        <Tab.Screen
+        <PrivTab.Screen
           name="Disciplinas"
           component={DisciplinasStack}
           options={{
             tabBarLabel: 'DEPORTE',
             tabBarIcon: ({ focused, color }) => (
-              <TabIcon
-                name={focused ? 'trophy' : 'trophy-outline'}
-                focused={focused}
-                color={color}
-              />
+              <TabIcon name={focused ? 'trophy' : 'trophy-outline'} focused={focused} color={color} />
             ),
           }}
         />
       )}
-
       {isProfesor && (
-        <Tab.Screen
+        <PrivTab.Screen
           name="MisClases"
           component={MisClasesStack}
           options={{
             tabBarLabel: 'CLASES',
             tabBarIcon: ({ focused, color }) => (
-              <TabIcon
-                name={focused ? 'school' : 'school-outline'}
-                focused={focused}
-                color={color}
-              />
+              <TabIcon name={focused ? 'school' : 'school-outline'} focused={focused} color={color} />
             ),
           }}
         />
       )}
-
       {tieneCuotas && (
-        <Tab.Screen
+        <PrivTab.Screen
           name="Cuotas"
           component={CuotasScreen}
           options={{
             tabBarLabel: 'CUOTAS',
             tabBarIcon: ({ focused, color }) => (
-              <TabIcon
-                name={focused ? 'wallet' : 'wallet-outline'}
-                focused={focused}
-                color={color}
-              />
+              <TabIcon name={focused ? 'wallet' : 'wallet-outline'} focused={focused} color={color} />
             ),
           }}
         />
       )}
-
-      <Tab.Screen
+      <PrivTab.Screen
         name="Perfil"
         component={PerfilStackNavigator}
         options={{
           tabBarLabel: 'PERFIL',
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon
-              name={focused ? 'person' : 'person-outline'}
-              focused={focused}
-              color={color}
-            />
+            <TabIcon name={focused ? 'person' : 'person-outline'} focused={focused} color={color} />
           ),
         }}
       />
-    </Tab.Navigator>
+    </PrivTab.Navigator>
   );
 }
 
 export default function AppNavigator() {
+  const { isAuthenticated } = useAuth();
   return (
     <NavigationContainer theme={NAV_THEME}>
-      <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        <RootStack.Screen name="MainTabs" component={MainTabs} />
-        <RootStack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{
-            headerShown:      true,
-            title:            'Iniciar Sesión',
-            headerStyle:      { backgroundColor: colors.red },
-            headerTintColor:  colors.text,
-            headerTitleStyle: { fontWeight: 'bold' },
-          }}
-        />
-        <RootStack.Screen
-          name="InfoClub"
-          component={InfoClubScreen}
-          options={{
-            headerShown:      true,
-            title:            'Información del Club',
-            headerStyle:      { backgroundColor: colors.red },
-            headerTintColor:  colors.text,
-            headerTitleStyle: { fontWeight: 'bold' },
-          }}
-        />
-      </RootStack.Navigator>
+      {isAuthenticated ? <PrivateNavigator /> : <PublicNavigator />}
     </NavigationContainer>
   );
 }

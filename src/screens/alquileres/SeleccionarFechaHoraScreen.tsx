@@ -131,14 +131,16 @@ export default function SeleccionarFechaHoraScreen({ navigation }: any) {
             }}
             markedDates={{ [selectedDate]: { selected: true, selectedColor: colors.red } }}
             theme={{
+              backgroundColor: colors.bg,
               calendarBackground: colors.surface,
-              todayTextColor: colors.red,
-              selectedDayBackgroundColor: colors.red,
-              arrowColor: colors.red,
-              dayTextColor: colors.text,
-              textDisabledColor: colors.muted,
-              monthTextColor: colors.text,
               textSectionTitleColor: colors.muted,
+              selectedDayBackgroundColor: colors.red,
+              selectedDayTextColor: colors.text,
+              todayTextColor: colors.red,
+              dayTextColor: colors.text,
+              textDisabledColor: colors.muted + '66',
+              arrowColor: colors.red,
+              monthTextColor: colors.text,
             }}
           />
         </View>
@@ -257,7 +259,7 @@ const styles = StyleSheet.create({
   slotTextOcupado: { color: colors.muted },
   slotTextSelected: { color: colors.text },
   slotSub: { ...typography.body, fontSize: 9, color: colors.muted, marginTop: 2 },
-  slotSubSelected: { color: colors.glassBorder },
+  slotSubSelected: { color: colors.text },
   resumenCard: {
     backgroundColor: colors.surface, borderRadius: radius.md,
     borderWidth: 1, borderColor: colors.glassBorder,

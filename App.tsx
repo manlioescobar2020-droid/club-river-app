@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
+import { setupNotificationListeners } from './src/services/notificationsService';
 import { AlquilerProvider } from './src/context/AlquilerContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ChatProvider, useChatContext } from './src/context/ChatContext';
@@ -45,6 +46,14 @@ function AppContent() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const cleanup = setupNotificationListeners(
+      (notification) => { console.log('[Push] Recibida:', notification.request.content.title); },
+      (response) => { console.log('[Push] Tocada:', response.notification.request.content.title); }
+    );
+    return cleanup;
+  }, []);
+
   const [fontsLoaded] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,

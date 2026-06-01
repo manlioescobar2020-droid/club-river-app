@@ -49,8 +49,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Las notificaciones son opcionales — nunca deben bloquear ni crashear el login
     registerForPushNotificationsAsync()
-      .then(pushToken => {
-        if (pushToken && userData.id) sendTokenToBackend(pushToken, userData.id);
+      .then(async pushToken => {
+        if (pushToken) {
+          const session = await authService.getStoredSession();
+          if (session?.token) sendTokenToBackend(pushToken, session.token).catch(() => {});
+        }
       })
       .catch(() => {});
   }

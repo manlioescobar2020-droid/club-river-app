@@ -7,6 +7,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import InicioPublicoScreen from '../screens/public/InicioPublicoScreen';
 import NoticiasScreen from '../screens/noticias/NoticiasScreen';
+import NoticiaDetalleScreen from '../screens/noticias/NoticiaDetalleScreen';
+import AsociarseScreen from '../screens/asociarse/AsociarseScreen';
 import InfoClubScreen from '../screens/public/InfoClubScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import AlquileresStack from './AlquileresStack';
@@ -81,6 +83,19 @@ function PublicNavigator() {
         options={{ title: 'Noticias', headerBackTitle: 'Volver' }}
       />
       <PubStack.Screen
+        name="Asociarse"
+        component={AsociarseScreen}
+        options={{ title: 'Asociarme al club', headerBackTitle: 'Volver' }}
+      />
+      <PubStack.Screen
+        name="NoticiaDetalle"
+        component={NoticiaDetalleScreen}
+        options={({ route }: any) => ({
+          title: route.params?.titulo ?? 'Noticia',
+          headerBackTitle: 'Volver',
+        })}
+      />
+      <PubStack.Screen
         name="Alquileres"
         component={AlquileresStack}
         options={{ headerShown: false }}
@@ -114,7 +129,7 @@ function PrivateNavigator() {
         tabBarActiveTintColor:   colors.red,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
-          backgroundColor: 'rgba(13,13,20,0.92)',
+          backgroundColor: colors.bg,
           borderTopWidth:  1,
           borderTopColor:  colors.border,
           height:          70,

@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   discPrecio:    { ...typography.body,       fontSize: 11, color: colors.muted },
   discBadge: {
     alignSelf:         'flex-start',
-    backgroundColor:   'rgba(74,222,128,0.12)',
+    backgroundColor:   colors.greenDim,
     borderRadius:      6,
     paddingHorizontal: 6,
     paddingVertical:   3,

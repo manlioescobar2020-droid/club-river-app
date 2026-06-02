@@ -1,17 +1,33 @@
 export const colors = {
-  bg: '#0A0A0F',
-  surface: '#13131A',
-  surface2: '#1C1C26',
-  border: 'rgba(255,255,255,0.07)',
-  glass: 'rgba(255,255,255,0.04)',
-  glassBorder: 'rgba(255,255,255,0.08)',
+  // Fondos
+  bg: '#FFFFFF',
+  surface: '#F5F5F5',
+  surface2: '#EEEEEE',
+
+  // Bordes
+  border: '#E0E0E0',
+  glass: 'rgba(0,0,0,0.04)',
+  glassBorder: 'rgba(0,0,0,0.08)',
+  overlay: 'rgba(0,0,0,0.7)',
+
+  // Rojo River
   red: '#DC2626',
   redBright: '#EF4444',
-  redDim: 'rgba(220,38,38,0.15)',
-  text: '#F0F0F5',
-  muted: '#6B7280',
-  green: '#4ADE80',
-  yellow: '#FACC15',
+  redDim: 'rgba(220,38,38,0.12)',
+
+  // Texto
+  text: '#111111',
+  muted: '#666666',
+
+  // Acentos
+  green: '#16A34A',
+  greenDim: 'rgba(74,222,128,0.15)',
+  greenBright: '#4ADE80',
+  yellow: '#D97706',
+  yellowDim: 'rgba(217,119,6,0.12)',
+  yellowBright: '#FCD34D',
+  purple: '#A78BFA',
+  purpleDim: 'rgba(139,92,246,0.15)',
 };
 
 export const radius = {

@@ -4,20 +4,20 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAlquiler } from '../../context/AlquilerContext';
 import { alquileresService } from '../../services/alquileresService';
 import { TipoEspacio, PrecioAlquiler } from '../../types/alquileres';
-import { colors, radius, typography } from '../../theme';
+import { colors } from '../../theme';
 
-interface DeporteCard {
+interface EspacioCard {
   icono: React.ComponentProps<typeof Ionicons>['name'];
   nombre: string;
   descripcion: string;
   tipo: TipoEspacio;
 }
 
-const DEPORTES: DeporteCard[] = [
-  { icono: 'football-outline',   nombre: 'Fútbol',   descripcion: 'Cancha de grass sintético, iluminada',          tipo: 'CANCHA' },
-  { icono: 'basketball-outline', nombre: 'Básquet',  descripcion: 'Cancha techada, parquet de madera',             tipo: 'CANCHA' },
-  { icono: 'tennisball-outline', nombre: 'Vóley',    descripcion: 'Cancha exterior, césped natural',               tipo: 'CANCHA' },
-  { icono: 'business-outline',   nombre: 'Salón',    descripcion: 'Eventos, fiestas y reuniones — hasta 150 personas', tipo: 'SALON' },
+const ESPACIOS: EspacioCard[] = [
+  { icono: 'football-outline',  nombre: 'Cancha de Fútbol 5', descripcion: 'Cancha exterior de fútbol 5',                   tipo: 'CANCHA_FUTBOL'    },
+  { icono: 'basketball-outline', nombre: 'Cancha Multiusos',   descripcion: 'Básquet · Vóley · Newcom · Fútbol de Salón',    tipo: 'CANCHA_MULTIUSOS' },
+  { icono: 'business-outline',  nombre: 'Salón de Eventos',   descripcion: 'Salón techado para eventos y reuniones',         tipo: 'SALON'            },
+  { icono: 'grid-outline',      nombre: 'Salón + Cancha',     descripcion: 'Todo el predio disponible',                     tipo: 'SALON_CANCHA'     },
 ];
 
 export default function AlquileresScreen({ navigation }: any) {
@@ -50,14 +50,18 @@ export default function AlquileresScreen({ navigation }: any) {
 
   const handleSeleccionar = (tipo: TipoEspacio) => {
     setTipoEspacio(tipo, getPrecioBase(tipo));
-    navigation.navigate('SeleccionarCategoria');
+    if (tipo === 'CANCHA_MULTIUSOS') {
+      navigation.navigate('SeleccionarDeporte');
+    } else {
+      navigation.navigate('SeleccionarCategoria');
+    }
   };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>RESERVAR</Text>
-        <Text style={styles.headerSubtitle}>Elegí tu espacio</Text>
+        <Text style={styles.headerTitle}>Reservar un espacio</Text>
+        <Text style={styles.headerSubtitle}>Elegí el espacio para tu evento</Text>
       </View>
 
       {loading ? (
@@ -65,131 +69,117 @@ export default function AlquileresScreen({ navigation }: any) {
           <ActivityIndicator size="large" color={colors.red} />
         </View>
       ) : (
-        <View style={styles.section}>
+        <>
           <Text style={styles.sectionTitle}>ESPACIOS DISPONIBLES</Text>
 
-          {DEPORTES.map((deporte) => {
-            const precio = getPrecioBase(deporte.tipo);
+          {ESPACIOS.map((espacio) => {
+            const precio = getPrecioBase(espacio.tipo);
             return (
               <TouchableOpacity
-                key={deporte.nombre}
-                onPress={() => handleSeleccionar(deporte.tipo)}
+                key={espacio.tipo}
+                onPress={() => handleSeleccionar(espacio.tipo)}
                 activeOpacity={0.75}
                 style={styles.card}
               >
-                <View style={styles.iconCircle}>
-                  <Ionicons name={deporte.icono} size={28} color={colors.red} />
+                <View style={styles.iconBox}>
+                  <Ionicons name={espacio.icono} size={22} color={colors.red} />
                 </View>
 
                 <View style={styles.cardInfo}>
-                  <Text style={styles.cardNombre}>{deporte.nombre}</Text>
-                  <Text style={styles.cardDesc}>{deporte.descripcion}</Text>
+                  <Text style={styles.cardNombre} numberOfLines={1}>{espacio.nombre}</Text>
+                  <Text style={styles.cardDesc} numberOfLines={1}>{espacio.descripcion}</Text>
                 </View>
 
                 <View style={styles.cardRight}>
                   {precio > 0 && (
-                    <View style={styles.precioBadge}>
-                      <Text style={styles.precioText}>
-                        desde ${precio.toLocaleString('es-AR')}/h
-                      </Text>
-                    </View>
+                    <Text style={styles.precioText}>
+                      desde ${precio.toLocaleString('es-AR')}/h
+                    </Text>
                   )}
-                  <Ionicons name="chevron-forward" size={20} color={colors.muted} />
+                  <Ionicons name="chevron-forward" size={16} color={colors.muted} />
                 </View>
               </TouchableOpacity>
             );
           })}
-        </View>
+        </>
       )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    paddingBottom: 32,
-  },
+  container: { flex: 1, backgroundColor: colors.bg },
+  content:   { paddingBottom: 32 },
+
   header: {
+    backgroundColor:   colors.red,
     paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 20,
+    paddingTop:        52,
+    paddingBottom:     20,
   },
   headerTitle: {
-    ...typography.display,
-    fontSize: 36,
-    color: colors.red,
-  },
-  headerSubtitle: {
-    ...typography.body,
-    fontSize: 14,
-    color: colors.muted,
-    marginTop: 2,
-  },
-  centered: {
-    paddingVertical: 80,
-    alignItems: 'center',
-  },
-  section: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  sectionTitle: {
-    ...typography.display,
-    fontSize: 13,
-    color: colors.muted,
-    letterSpacing: 2,
+    fontSize:    22,
+    fontWeight:  '700',
+    color:       colors.bg,
     marginBottom: 4,
   },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.glassBorder,
-    padding: 16,
-    gap: 14,
+  headerSubtitle: {
+    fontSize: 14,
+    color:    colors.bg,
   },
-  iconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+
+  centered: { paddingVertical: 80, alignItems: 'center' },
+
+  sectionTitle: {
+    fontSize:       11,
+    fontWeight:     '600',
+    color:          colors.muted,
+    letterSpacing:  2,
+    marginTop:      20,
+    marginBottom:   12,
+    marginHorizontal: 16,
+  },
+
+  card: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    backgroundColor: colors.surface,
+    borderRadius:    12,
+    marginHorizontal: 16,
+    marginBottom:    12,
+    padding:         16,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.red,
+  },
+  iconBox: {
+    width:           44,
+    height:          44,
+    borderRadius:    10,
     backgroundColor: colors.redDim,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent:  'center',
+    alignItems:      'center',
   },
   cardInfo: {
-    flex: 1,
+    flex:              1,
+    marginHorizontal:  12,
   },
   cardNombre: {
-    ...typography.bodySemiBold,
-    fontSize: 16,
-    color: colors.text,
-    marginBottom: 3,
+    fontSize:   16,
+    fontWeight: '700',
+    color:      colors.text,
   },
   cardDesc: {
-    ...typography.body,
-    fontSize: 13,
-    color: colors.muted,
-    lineHeight: 18,
+    fontSize:  13,
+    color:     colors.muted,
+    marginTop: 2,
   },
   cardRight: {
     alignItems: 'flex-end',
-    gap: 6,
-  },
-  precioBadge: {
-    backgroundColor: colors.redDim,
-    borderRadius: radius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    gap:        4,
   },
   precioText: {
-    ...typography.bodyBold,
-    fontSize: 11,
-    color: colors.red,
+    fontSize:   13,
+    fontWeight: '600',
+    color:      colors.red,
   },
 });

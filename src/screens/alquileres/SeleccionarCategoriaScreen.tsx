@@ -12,7 +12,7 @@ import { CATEGORIAS_EVENTO } from '../../constants/alquileres';
 import ProgressSteps from '../../components/alquileres/ProgressSteps';
 import OptionCard from '../../components/alquileres/OptionCard';
 import { colors, radius, typography } from '../../theme';
-import { CategoriaEvento } from '../../types/alquileres';
+import { CategoriaEvento, labelTipoEspacio, labelDeporte } from '../../types/alquileres';
 
 const STEPS = [
   { number: 1, label: 'Espacio' },
@@ -59,7 +59,10 @@ export default function SeleccionarCategoriaScreen({ navigation }: any) {
         {state.tipoEspacio && (
           <View style={styles.resumenPaso1}>
             <Text style={styles.resumenLabel}>Espacio seleccionado</Text>
-            <Text style={styles.resumenValor}>{state.tipoEspacio}</Text>
+            <Text style={styles.resumenValor}>
+              {labelTipoEspacio(state.tipoEspacio)}
+              {state.deporte ? ` — ${labelDeporte(state.deporte)}` : ''}
+            </Text>
           </View>
         )}
 

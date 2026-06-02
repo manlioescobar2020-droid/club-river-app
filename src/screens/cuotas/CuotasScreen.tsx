@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   headerGradient: {
     paddingHorizontal: 20,
     paddingBottom:     20,
-    backgroundColor:   'rgba(220,38,38,0.08)',
+    backgroundColor:   colors.redDim,
   },
   headerTitle: {
     ...typography.display,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom:     12,
     padding:          16,
-    backgroundColor:  'rgba(220,38,38,0.08)',
+    backgroundColor:  colors.redDim,
     borderRadius:     radius.md,
     borderLeftWidth:  3,
     borderLeftColor:  colors.red,

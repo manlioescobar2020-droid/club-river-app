@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   fecha: { ...typography.body, fontSize: 13, color: colors.muted },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill },
   badgeCuota: { backgroundColor: colors.redDim },
-  badgeAlquiler: { backgroundColor: 'rgba(74,222,128,0.15)' },
+  badgeAlquiler: { backgroundColor: colors.greenDim },
   badgeText: { ...typography.bodyBold, fontSize: 12 },
   badgeTextCuota: { color: colors.red },
   badgeTextAlquiler: { color: colors.green },

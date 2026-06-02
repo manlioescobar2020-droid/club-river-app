@@ -13,9 +13,9 @@ export interface CuotaCardProps {
 }
 
 const ESTADO_CONFIG: Record<string, { bg: string; color: string }> = {
-  VENCIDA:   { bg: 'rgba(220,38,38,0.15)',  color: '#EF4444' },
-  PENDIENTE: { bg: 'rgba(234,179,8,0.12)',  color: '#FACC15' },
-  PAGADA:    { bg: 'rgba(34,197,94,0.12)',  color: '#4ADE80' },
+  VENCIDA:   { bg: colors.redDim,    color: colors.redBright    },
+  PENDIENTE: { bg: colors.yellowDim, color: colors.yellowBright },
+  PAGADA:    { bg: colors.greenDim,  color: colors.greenBright  },
 };
 
 function parseMesAnio(mesAnio: string): { mes: string; anio: string } {
@@ -39,7 +39,7 @@ export default function CuotaCard({
   onVerRecibo,
 }: CuotaCardProps) {
   const { mes, anio } = parseMesAnio(cuota.mesAnio);
-  const cfg = ESTADO_CONFIG[cuota.estado] ?? { bg: 'rgba(107,114,128,0.12)', color: colors.muted };
+  const cfg = ESTADO_CONFIG[cuota.estado] ?? { bg: colors.surface2, color: colors.muted };
 
   return (
     <TouchableOpacity
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   },
   cardSelected: {
     borderColor:     colors.red,
-    backgroundColor: 'rgba(220,38,38,0.06)',
+    backgroundColor: colors.redDim,
   },
 
   /* Date box */

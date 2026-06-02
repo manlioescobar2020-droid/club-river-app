@@ -41,8 +41,8 @@ const TIPO_ESPACIO: Record<string, string> = {
 };
 
 const ESTADO_CONFIG: Record<string, { bg: string; color: string; label: string }> = {
-  PAGADO:    { bg: 'rgba(74,222,128,0.15)',  color: colors.green,  label: 'Pagado'    },
-  RESERVADO: { bg: 'rgba(250,204,21,0.15)',  color: colors.yellow, label: 'Reservado' },
+  PAGADO:    { bg: colors.greenDim,  color: colors.green,  label: 'Pagado'    },
+  RESERVADO: { bg: colors.yellowDim, color: colors.yellow, label: 'Reservado' },
   CANCELADO: { bg: colors.redDim,            color: colors.red,    label: 'Cancelado' },
 };
 
@@ -164,10 +164,10 @@ const styles = StyleSheet.create({
   detallesRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   tipoEspacio: { ...typography.bodySemiBold, fontSize: 14, color: colors.text },
   categBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill },
-  categPublico: { backgroundColor: 'rgba(74,222,128,0.15)' },
-  categPrivado: { backgroundColor: 'rgba(139,92,246,0.15)' },
+  categPublico: { backgroundColor: colors.greenDim },
+  categPrivado: { backgroundColor: colors.purpleDim },
   categText: { ...typography.bodyBold, fontSize: 12 },
   categTextPublico: { color: colors.green },
-  categTextPrivado: { color: '#A78BFA' },
+  categTextPrivado: { color: colors.purple },
   monto: { ...typography.bodyBold, fontSize: 20, color: colors.text },
 });

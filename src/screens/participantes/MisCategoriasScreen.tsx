@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   categoriaNombre: { ...typography.bodySemiBold, fontSize: 16, color: colors.text, marginBottom: 2 },
   disciplinaNombre: { ...typography.body, fontSize: 13, color: colors.muted },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill },
-  badgeActivo: { backgroundColor: 'rgba(74,222,128,0.15)' },
+  badgeActivo: { backgroundColor: colors.greenDim },
   badgeInactivo: { backgroundColor: colors.surface2 },
   badgeText: { ...typography.bodyBold, fontSize: 12 },
   badgeTextoActivo: { color: colors.green },

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAlquiler } from '../../context/AlquilerContext';
+import { labelTipoEspacio, labelDeporte } from '../../types/alquileres';
 import { alquileresService } from '../../services/alquileresService';
 import ProgressSteps from '../../components/alquileres/ProgressSteps';
 import { colors, radius, typography } from '../../theme';
@@ -133,6 +134,7 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
 
       const payload = {
         tipoEspacio:      state.tipoEspacio!,
+        ...(state.deporte ? { deporte: state.deporte } : {}),
         categoriaEvento:  state.categoriaEvento!,
         fecha:            state.fecha!.toISOString(),
         horaInicio:       state.horaInicio!,
@@ -200,7 +202,7 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
           </View>
 
           {[
-            { label: 'Espacio',         value: state.tipoEspacio?.replace('_', ' + ') },
+            { label: 'Espacio', value: state.tipoEspacio ? `${labelTipoEspacio(state.tipoEspacio)}${state.deporte ? ' — ' + labelDeporte(state.deporte) : ''}` : undefined },
             { label: 'Tipo de evento',   value: state.categoriaEvento },
             { label: 'Fecha',            value: labelFecha },
             { label: 'Hora de inicio',   value: state.horaInicio },

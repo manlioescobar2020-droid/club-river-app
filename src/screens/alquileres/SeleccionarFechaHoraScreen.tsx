@@ -12,6 +12,7 @@ import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { useAlquiler } from '../../context/AlquilerContext';
 import { alquileresService } from '../../services/alquileresService';
 import { HORARIOS_DISPONIBLES } from '../../constants/alquileres';
+import { labelTipoEspacio } from '../../types/alquileres';
 import ProgressSteps from '../../components/alquileres/ProgressSteps';
 import { colors, radius, typography } from '../../theme';
 
@@ -119,7 +120,7 @@ export default function SeleccionarFechaHoraScreen({ navigation }: any) {
 
       <ScrollView style={styles.content}>
         <Text style={styles.title}>Elegí fecha y hora</Text>
-        <Text style={styles.subtitle}>{state.tipoEspacio?.replace('_', ' + ')} • {state.categoriaEvento}</Text>
+        <Text style={styles.subtitle}>{state.tipoEspacio ? labelTipoEspacio(state.tipoEspacio) : ''} • {state.categoriaEvento}</Text>
 
         <View style={styles.calendarContainer}>
           <Calendar

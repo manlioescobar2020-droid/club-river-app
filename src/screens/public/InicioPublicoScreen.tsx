@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  Image,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -13,35 +14,46 @@ import { colors, typography } from '../../theme';
 
 interface ActionCard {
   icon: React.ComponentProps<typeof Ionicons>['name'];
+  imageUrl?: string; // cuando haya foto real: assets/images/<nombre>.png o URL
   title: string;
   description: string;
   route: string;
+  color: string;
+  bgColor: string;
 }
 
 const ACTION_CARDS: ActionCard[] = [
   {
-    icon: 'calendar-outline',
-    title: 'Alquilar un espacio',
+    icon:        'business-outline',
+    title:       'Alquilar un espacio',
     description: 'Reservá canchas, salón de eventos y más',
-    route: 'Alquileres',
+    route:       'Alquileres',
+    color:       colors.red,
+    bgColor:     colors.redDim,
   },
   {
-    icon: 'trophy-outline',
-    title: 'Inscribirse en una disciplina',
+    icon:        'basketball-outline',
+    title:       'Inscribirse en una disciplina',
     description: 'Fútbol, básquet, vóley y más',
-    route: 'InscripcionPublica',
+    route:       'InscripcionPublica',
+    color:       colors.yellow,
+    bgColor:     colors.yellowDim,
   },
   {
-    icon: 'person-add-outline',
-    title: 'Asociarme al club',
+    icon:        'card-outline',
+    title:       'Asociarme al club',
     description: 'Convertite en socio y accedé a beneficios',
-    route: 'Asociarse',
+    route:       'Asociarse',
+    color:       colors.green,
+    bgColor:     colors.greenDim,
   },
   {
-    icon: 'newspaper-outline',
-    title: 'Noticias del club',
+    icon:        'megaphone-outline',
+    title:       'Noticias del club',
     description: 'Novedades, torneos y eventos',
-    route: 'Noticias',
+    route:       'Noticias',
+    color:       colors.purple,
+    bgColor:     colors.purpleDim,
   },
 ];
 
@@ -71,18 +83,21 @@ export default function InicioPublicoScreen() {
         {ACTION_CARDS.map((card) => (
           <TouchableOpacity
             key={card.title}
-            style={styles.card}
+            style={[styles.card, { borderLeftColor: card.color }]}
             onPress={() => navigation.navigate(card.route)}
             activeOpacity={0.75}
           >
-            <View style={styles.cardIcon}>
-              <Ionicons name={card.icon} size={24} color={colors.red} />
+            <View style={[styles.cardIcon, { backgroundColor: card.bgColor }]}>
+              {card.imageUrl
+                ? <Image source={{ uri: card.imageUrl }} style={styles.cardImage} />
+                : <Ionicons name={card.icon} size={28} color={card.color} />
+              }
             </View>
             <View style={styles.cardContent}>
               <Text style={styles.cardTitle}>{card.title}</Text>
               <Text style={styles.cardDesc}>{card.description}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.red} />
+            <Ionicons name="chevron-forward" size={18} color={card.color} />
           </TouchableOpacity>
         ))}
       </View>
@@ -168,7 +183,6 @@ const styles = StyleSheet.create({
     borderWidth:      1,
     borderColor:      colors.surface2,
     borderLeftWidth:  4,
-    borderLeftColor:  colors.red,
     padding:          18,
     marginBottom:     12,
     gap:              14,
@@ -179,12 +193,16 @@ const styles = StyleSheet.create({
     elevation:        3,
   },
   cardIcon: {
-    width:           48,
-    height:          48,
-    borderRadius:    10,
-    backgroundColor: colors.redDim,
+    width:           56,
+    height:          56,
+    borderRadius:    12,
     justifyContent:  'center',
     alignItems:      'center',
+    padding:         6,
+  },
+  cardImage: {
+    width:  52,
+    height: 52,
   },
   cardContent: { flex: 1 },
   cardTitle: {

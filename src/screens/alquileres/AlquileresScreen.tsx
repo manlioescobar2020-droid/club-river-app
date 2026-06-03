@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAlquiler } from '../../context/AlquilerContext';
 import { alquileresService } from '../../services/alquileresService';
@@ -8,16 +8,47 @@ import { colors } from '../../theme';
 
 interface EspacioCard {
   icono: React.ComponentProps<typeof Ionicons>['name'];
+  imageUrl?: string; // cuando haya foto real: assets/images/<nombre>.png o URL
   nombre: string;
   descripcion: string;
   tipo: TipoEspacio;
+  color: string;
+  bgColor: string;
 }
 
 const ESPACIOS: EspacioCard[] = [
-  { icono: 'football-outline',  nombre: 'Cancha de Fútbol 5', descripcion: 'Cancha exterior de fútbol 5',                   tipo: 'CANCHA_FUTBOL'    },
-  { icono: 'basketball-outline', nombre: 'Cancha Multiusos',   descripcion: 'Básquet · Vóley · Newcom · Fútbol de Salón',    tipo: 'CANCHA_MULTIUSOS' },
-  { icono: 'business-outline',  nombre: 'Salón de Eventos',   descripcion: 'Salón techado para eventos y reuniones',         tipo: 'SALON'            },
-  { icono: 'grid-outline',      nombre: 'Salón + Cancha',     descripcion: 'Todo el predio disponible',                     tipo: 'SALON_CANCHA'     },
+  {
+    icono:       'football-outline',
+    nombre:      'Cancha de Fútbol 5',
+    descripcion: 'Cancha exterior de fútbol 5',
+    tipo:        'CANCHA_FUTBOL',
+    color:       colors.red,
+    bgColor:     colors.redDim,
+  },
+  {
+    icono:       'basketball-outline',
+    nombre:      'Cancha Multiusos',
+    descripcion: 'Básquet · Vóley · Newcom · Fútbol de Salón',
+    tipo:        'CANCHA_MULTIUSOS',
+    color:       colors.yellow,
+    bgColor:     colors.yellowDim,
+  },
+  {
+    icono:       'business-outline',
+    nombre:      'Salón de Eventos',
+    descripcion: 'Salón techado para eventos y reuniones',
+    tipo:        'SALON',
+    color:       colors.purple,
+    bgColor:     colors.purpleDim,
+  },
+  {
+    icono:       'grid-outline',
+    nombre:      'Salón + Cancha',
+    descripcion: 'Todo el predio disponible',
+    tipo:        'SALON_CANCHA',
+    color:       colors.green,
+    bgColor:     colors.greenDim,
+  },
 ];
 
 export default function AlquileresScreen({ navigation }: any) {
@@ -79,10 +110,13 @@ export default function AlquileresScreen({ navigation }: any) {
                 key={espacio.tipo}
                 onPress={() => handleSeleccionar(espacio.tipo)}
                 activeOpacity={0.75}
-                style={styles.card}
+                style={[styles.card, { borderLeftColor: espacio.color }]}
               >
-                <View style={styles.iconBox}>
-                  <Ionicons name={espacio.icono} size={22} color={colors.red} />
+                <View style={[styles.iconBox, { backgroundColor: espacio.bgColor }]}>
+                  {espacio.imageUrl
+                    ? <Image source={{ uri: espacio.imageUrl }} style={styles.cardImage} />
+                    : <Ionicons name={espacio.icono} size={26} color={espacio.color} />
+                  }
                 </View>
 
                 <View style={styles.cardInfo}>
@@ -96,7 +130,7 @@ export default function AlquileresScreen({ navigation }: any) {
                       desde ${precio.toLocaleString('es-AR')}/h
                     </Text>
                   )}
-                  <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+                  <Ionicons name="chevron-forward" size={16} color={espacio.color} />
                 </View>
               </TouchableOpacity>
             );
@@ -149,15 +183,18 @@ const styles = StyleSheet.create({
     marginBottom:    12,
     padding:         16,
     borderLeftWidth: 4,
-    borderLeftColor: colors.red,
   },
   iconBox: {
-    width:           44,
-    height:          44,
-    borderRadius:    10,
-    backgroundColor: colors.redDim,
+    width:           56,
+    height:          56,
+    borderRadius:    12,
     justifyContent:  'center',
     alignItems:      'center',
+    padding:         6,
+  },
+  cardImage: {
+    width:  52,
+    height: 52,
   },
   cardInfo: {
     flex:              1,

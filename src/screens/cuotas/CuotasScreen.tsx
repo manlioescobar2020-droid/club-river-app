@@ -42,6 +42,7 @@ export default function CuotasScreen() {
   const [seleccionadas, setSeleccionadas] = useState<number[]>([]);
   const [pagando, setPagando]             = useState(false);
   const [descargando, setDescargando]     = useState<number | null>(null);
+  const loadCuotasRef = useRef<(() => void) | null>(null);
 
   const rolTieneCuotas = user?.rol && ROLES_CON_CUOTAS.includes(user.rol);
 
@@ -64,6 +65,23 @@ export default function CuotasScreen() {
 
   useEffect(() => { loadCuotas(); }, [user?.rol]);
   useFocusEffect(useCallback(() => { loadCuotas(); }, [user?.rol]));
+
+  useEffect(() => { loadCuotasRef.current = loadCuotas; });
+
+  useEffect(() => {
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      if (!url.startsWith('clubriver://cuotas')) return;
+      const { queryParams } = Linking.parse(url);
+      const status = queryParams?.status;
+      if (status === 'failure') {
+        Alert.alert('Pago no completado', 'El pago no pudo procesarse. Podés intentarlo nuevamente.');
+        return;
+      }
+      setSeleccionadas([]);
+      loadCuotasRef.current?.();
+    });
+    return () => subscription.remove();
+  }, []);
 
   const onRefresh = () => { setRefreshing(true); setSeleccionadas([]); loadCuotas(); };
 
@@ -100,7 +118,11 @@ export default function CuotasScreen() {
     try {
       const { initPoint } = await cuotasService.pagarMultiplesCuotas(seleccionadas);
       await Linking.openURL(initPoint);
-      setSeleccionadas([]);
+      Alert.alert(
+        'Pago iniciado',
+        'Serás redirigido de vuelta al finalizar el pago.',
+        [{ text: 'Entendido' }]
+      );
     } catch (err: any) {
       Alert.alert('Error al pagar', err.message || 'No se pudo iniciar el pago.');
     } finally {

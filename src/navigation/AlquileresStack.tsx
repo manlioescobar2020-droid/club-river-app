@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import AlquileresScreen from '../screens/alquileres/AlquileresScreen';
+import SeleccionarDeporteScreen from '../screens/alquileres/SeleccionarDeporteScreen';
 import SeleccionarCategoriaScreen from '../screens/alquileres/SeleccionarCategoriaScreen';
 import SeleccionarFechaHoraScreen from '../screens/alquileres/SeleccionarFechaHoraScreen';
 import ConfirmarReservaScreen from '../screens/alquileres/ConfirmarReservaScreen';
@@ -23,6 +24,11 @@ export default function AlquileresStack() {
         name="AlquileresHome"
         component={AlquileresScreen}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="SeleccionarDeporte"
+        component={SeleccionarDeporteScreen}
+        options={{ title: '¿Para qué deporte?', headerBackTitle: 'Volver' }}
       />
       <Stack.Screen
         name="SeleccionarCategoria"

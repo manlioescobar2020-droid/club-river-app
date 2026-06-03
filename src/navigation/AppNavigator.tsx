@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { NavigationContainer, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -35,6 +35,8 @@ const NAV_THEME = {
     primary:    colors.red,
   },
 };
+
+export const navigationRef = createNavigationContainerRef();
 
 const PubStack = createNativeStackNavigator();
 const PrivTab  = createBottomTabNavigator();
@@ -235,7 +237,7 @@ function PrivateNavigator() {
 export default function AppNavigator() {
   const { isAuthenticated } = useAuth();
   return (
-    <NavigationContainer theme={NAV_THEME}>
+    <NavigationContainer theme={NAV_THEME} ref={navigationRef}>
       {isAuthenticated ? <PrivateNavigator /> : <PublicNavigator />}
     </NavigationContainer>
   );

@@ -32,6 +32,30 @@ const STEPS = [
   { number: 4, label: 'Datos' },
 ];
 
+// fin H es válido si todos los slots [horaInicio … H-1] están libres.
+// Se chequea slotAnterior = H-1, no H: fin=16:00 es válido aunque 16:00
+// esté ocupado, porque el alquiler termina EN 16:00 y no usa ese slot.
+function computeHorasFinConValidez(
+  horaInicio: string,
+  ocupados:   string[],
+): { hora: string; valida: boolean }[] {
+  const horaInicioNum = parseInt(horaInicio.split(':')[0], 10);
+  const opciones: { hora: string; valida: boolean }[] = [];
+  let bloqueado = false;
+
+  for (let i = horaInicioNum + 1; i <= 23; i++) {
+    const slotAnterior = `${(i - 1).toString().padStart(2, '0')}:00`;
+    if (!bloqueado && ocupados.includes(slotAnterior)) bloqueado = true;
+    opciones.push({ hora: `${i.toString().padStart(2, '0')}:00`, valida: !bloqueado });
+  }
+  // Madrugada del día siguiente (00:00–07:00): válida solo si nada cortó la cadena
+  for (let i = 0; i <= 7; i++) {
+    opciones.push({ hora: `${i.toString().padStart(2, '0')}:00`, valida: !bloqueado });
+  }
+
+  return opciones;
+}
+
 export default function SeleccionarFechaHoraScreen({ navigation }: any) {
   const { state, setFechaHora } = useAlquiler();
   const [selectedDate, setSelectedDate] = useState('');
@@ -52,9 +76,6 @@ export default function SeleccionarFechaHoraScreen({ navigation }: any) {
     try {
       const disponibilidad = await alquileresService.getDisponibilidad(selectedDate, state.tipoEspacio ?? undefined);
       const ocupados = disponibilidad.filter(h => !h.disponible).map(h => h.hora);
-      console.log('[HORARIOS DEBUG] Fecha seleccionada:', selectedDate);
-      console.log('[HORARIOS DEBUG] Respuesta cruda del backend:', JSON.stringify(disponibilidad));
-      console.log('[HORARIOS DEBUG] Ocupados del backend:', ocupados);
       setHorariosOcupados(ocupados);
     } catch {
       setHorariosOcupados([]);
@@ -75,15 +96,6 @@ export default function SeleccionarFechaHoraScreen({ navigation }: any) {
 
   const isDisponible = (hora: string) => !horariosOcupados.includes(hora) && !isHorarioPasado(hora);
 
-  const generarHorasFin = (horaInicio: string): string[] => {
-    const horaInicioNum = parseInt(horaInicio.split(':')[0]);
-    const opciones: string[] = [];
-    for (let i = horaInicioNum + 1; i <= 23; i++) opciones.push(`${i.toString().padStart(2, '0')}:00`);
-    // Madrugada del día siguiente (00:00 a 07:00)
-    for (let i = 0; i <= 7; i++) opciones.push(`${i.toString().padStart(2, '0')}:00`);
-    return opciones;
-  };
-
   const calcularHoras = (inicio: string, fin: string): number => {
     const horaInicio = parseInt(inicio.split(':')[0]);
     const horaFin    = parseInt(fin.split(':')[0]);
@@ -94,8 +106,13 @@ export default function SeleccionarFechaHoraScreen({ navigation }: any) {
 
   const handleSelectInicio = (hora: string) => {
     if (!isDisponible(hora)) { Alert.alert('No disponible', 'Este horario ya está reservado'); return; }
+    // Solo resetear fin si queda inválido con el nuevo inicio
+    if (selectedHoraFin !== null) {
+      const nuevasOpciones = computeHorasFinConValidez(hora, horariosOcupados);
+      const finSigueValido = nuevasOpciones.find(o => o.hora === selectedHoraFin)?.valida ?? false;
+      if (!finSigueValido) setSelectedHoraFin(null);
+    }
     setSelectedHoraInicio(hora);
-    setSelectedHoraFin(null);
   };
 
   const horas = selectedHoraInicio && selectedHoraFin ? calcularHoras(selectedHoraInicio, selectedHoraFin) : 0;
@@ -159,7 +176,7 @@ export default function SeleccionarFechaHoraScreen({ navigation }: any) {
               <>
                 <Text style={styles.horarioLabel}>Hora de inicio</Text>
                 <View style={styles.grid}>
-                  {HORARIOS_DISPONIBLES.filter(h => !isHorarioPasado(h)).map((hora) => {
+                  {HORARIOS_DISPONIBLES.filter(h => h !== '23:00' && !isHorarioPasado(h)).map((hora) => {
                     const libre = isDisponible(hora);
                     const sel = selectedHoraInicio === hora;
                     return (
@@ -184,18 +201,21 @@ export default function SeleccionarFechaHoraScreen({ navigation }: any) {
                   <>
                     <Text style={styles.horarioLabel}>Hora de fin</Text>
                     <View style={styles.grid}>
-                      {generarHorasFin(selectedHoraInicio).map((hora) => {
+                      {computeHorasFinConValidez(selectedHoraInicio, horariosOcupados).map(({ hora, valida }) => {
                         const sel    = selectedHoraFin === hora;
                         const diaSig = esDiaSiguiente(hora);
                         return (
                           <TouchableOpacity
                             key={`fin-${hora}`}
-                            style={[styles.slot, sel && styles.slotSelected]}
+                            style={[styles.slot, !valida && styles.slotOcupado, sel && styles.slotSelected]}
                             onPress={() => setSelectedHoraFin(hora)}
+                            disabled={!valida}
                           >
-                            <Text style={[styles.slotText, sel && styles.slotTextSelected]}>{hora}</Text>
+                            <Text style={[styles.slotText, !valida && styles.slotTextOcupado, sel && styles.slotTextSelected]}>
+                              {hora}
+                            </Text>
                             <Text style={[styles.slotSub, sel && styles.slotSubSelected]}>
-                              {diaSig ? 'día sig.' : ''}
+                              {!valida ? 'Ocupado' : diaSig ? 'día sig.' : ''}
                             </Text>
                           </TouchableOpacity>
                         );

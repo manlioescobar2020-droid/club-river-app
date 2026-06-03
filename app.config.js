@@ -3,6 +3,7 @@ module.exports = {
     owner: "manlioescobar",
     name: "club-river-app",
     slug: "club-river-app",
+    scheme: "clubriver",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",

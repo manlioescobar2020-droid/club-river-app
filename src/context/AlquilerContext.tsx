@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { TipoEspacio, CategoriaEvento, PrecioAlquiler } from '../types/alquileres';
+import { TipoEspacio, CategoriaEvento, DeporteMultiusos, PrecioAlquiler } from '../types/alquileres';
 
 interface AlquilerState {
   tipoEspacio: TipoEspacio | null;
+  deporte: DeporteMultiusos | null;
   categoriaEvento: CategoriaEvento | null;
   fecha: Date | null;
   horaInicio: string | null;
@@ -15,6 +16,7 @@ interface AlquilerState {
 interface AlquilerContextType {
   state: AlquilerState;
   setTipoEspacio: (tipo: TipoEspacio, precio: number) => void;
+  setDeporte: (deporte: DeporteMultiusos) => void;
   setCategoriaEvento: (categoria: CategoriaEvento) => void;
   setFechaHora: (fecha: Date, horaInicio: string, horaFin: string) => void;
   setPrecios: (precios: PrecioAlquiler[]) => void;
@@ -26,6 +28,7 @@ const AlquilerContext = createContext<AlquilerContextType | undefined>(undefined
 
 const initialState: AlquilerState = {
   tipoEspacio: null,
+  deporte: null,
   categoriaEvento: null,
   fecha: null,
   horaInicio: null,
@@ -39,7 +42,11 @@ export function AlquilerProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AlquilerState>(initialState);
 
   const setTipoEspacio = (tipo: TipoEspacio, precio: number) => {
-    setState(prev => ({ ...prev, tipoEspacio: tipo, precioPorHora: precio }));
+    setState(prev => ({ ...prev, tipoEspacio: tipo, deporte: null, precioPorHora: precio }));
+  };
+
+  const setDeporte = (deporte: DeporteMultiusos) => {
+    setState(prev => ({ ...prev, deporte }));
   };
 
   const setCategoriaEvento = (categoria: CategoriaEvento) => {
@@ -70,6 +77,7 @@ export function AlquilerProvider({ children }: { children: ReactNode }) {
     <AlquilerContext.Provider value={{
       state,
       setTipoEspacio,
+      setDeporte,
       setCategoriaEvento,
       setFechaHora,
       setPrecios,

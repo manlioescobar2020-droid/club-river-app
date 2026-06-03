@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Linking } from 'react-native';
 import { setupNotificationListeners } from './src/services/notificationsService';
 import { AlquilerProvider } from './src/context/AlquilerContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ChatProvider, useChatContext } from './src/context/ChatContext';
-import AppNavigator from './src/navigation/AppNavigator';
+import AppNavigator, { navigationRef } from './src/navigation/AppNavigator';
 import ChatButton from './src/components/chat/ChatButton';
 import ChatModal from './src/components/chat/ChatModal';
 import { useFonts } from 'expo-font';
@@ -16,6 +16,29 @@ import {
 } from '@expo-google-fonts/dm-sans';
 import { BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import Ionicons from '@expo/vector-icons/Ionicons';
+
+function DeepLinkHandler() {
+  const { isAuthenticated } = useAuth();
+  const handledInitialUrl   = useRef(false);
+
+  useEffect(() => {
+    const handleUrl = ({ url }: { url: string }) => {
+      if (!url.startsWith('clubriver://cuotas')) return;
+      if (!isAuthenticated || !navigationRef.isReady()) return;
+      navigationRef.navigate('Cuotas' as never);
+    };
+
+    if (!handledInitialUrl.current && isAuthenticated) {
+      handledInitialUrl.current = true;
+      Linking.getInitialURL().then(url => { if (url) handleUrl({ url }); });
+    }
+
+    const subscription = Linking.addEventListener('url', handleUrl);
+    return () => subscription.remove();
+  }, [isAuthenticated]);
+
+  return null;
+}
 
 function AuthChatBridge() {
   const { isAuthenticated } = useAuth();
@@ -37,6 +60,7 @@ function AppContent() {
         <AuthProvider>
           <AppNavigator />
           <AuthChatBridge />
+          <DeepLinkHandler />
           <ChatButton />
           <ChatModal />
         </AuthProvider>

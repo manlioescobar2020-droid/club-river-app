@@ -19,7 +19,7 @@ async function getCuotas(): Promise<Cuota[]> {
 }
 
 async function pagarMultiplesCuotas(cuotaIds: number[]): Promise<{ initPoint: string }> {
-  const response = await api.post('/mi-cuenta/pago', { cuotaIds });
+  const response = await api.post('/mi-cuenta/pago', { cuotaIds, origen: 'app' });
   return response.data;
 }
 

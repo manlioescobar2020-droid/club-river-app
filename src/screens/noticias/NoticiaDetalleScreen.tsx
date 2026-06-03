@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import ImageViewing from 'react-native-image-viewing';
+import ImageViewing from '../../components/ImageViewingShim';
 import { colors, radius, typography } from '../../theme';
 import api from '../../services/api';
 

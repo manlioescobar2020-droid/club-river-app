@@ -2,14 +2,20 @@ import { Espacio, CategoriaEventoInfo } from '../types/alquileres';
 
 export const ESPACIOS: Espacio[] = [
   {
-    tipo: 'CANCHA',
-    nombre: 'Cancha',
-    descripcion: 'Espacio deportivo exterior para actividades físicas y partidos',
+    tipo: 'CANCHA_FUTBOL',
+    nombre: 'Cancha de Fútbol',
+    descripcion: 'Cancha exterior de fútbol 5',
+    icono: 'football',
+  },
+  {
+    tipo: 'CANCHA_MULTIUSOS',
+    nombre: 'Cancha Multiusos',
+    descripcion: 'Básquet, vóley, newcom y fútbol de salón',
     icono: 'basketball',
   },
   {
     tipo: 'SALON',
-    nombre: 'Salón',
+    nombre: 'Salón de Eventos',
     descripcion: 'Salón techado ideal para reuniones, cumpleaños y eventos sociales',
     icono: 'business',
   },
@@ -39,7 +45,7 @@ export const CATEGORIAS_EVENTO: CategoriaEventoInfo[] = [
 export const HORARIOS_DISPONIBLES = [
   '08:00', '09:00', '10:00', '11:00', '12:00',
   '13:00', '14:00', '15:00', '16:00', '17:00',
-  '18:00', '19:00', '20:00', '21:00', '22:00', '23:00',
+  '18:00', '19:00', '20:00', '21:00', '22:00',
 ];
 
 // Horarios válidos para hora de fin — incluye madrugada del día siguiente

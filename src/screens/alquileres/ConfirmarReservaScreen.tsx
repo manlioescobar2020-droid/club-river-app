@@ -256,6 +256,13 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
           ))}
         </View>
 
+        {/* Aviso email */}
+        <View style={styles.emailNotice}>
+          <Text style={styles.emailNoticeText}>
+            📧 Ingresá datos válidos. Recibirás la confirmación de tu reserva por email y accederás a promociones exclusivas para clientes frecuentes.
+          </Text>
+        </View>
+
         {/* Términos */}
         <TouchableOpacity
           style={styles.checkboxContainer}
@@ -335,6 +342,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
     backgroundColor: colors.surface2,
+  },
+
+  emailNotice: {
+    backgroundColor: colors.surface,
+    borderRadius:    12,
+    padding:         12,
+    marginBottom:    16,
+  },
+  emailNoticeText: {
+    ...typography.body,
+    fontSize:   12,
+    color:      colors.muted,
+    lineHeight: 18,
   },
 
   checkboxContainer: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },

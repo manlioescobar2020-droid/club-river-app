@@ -1,10 +1,7 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
 
-export const BASE_URL =
-  Platform.OS === 'web'
-    ? 'http://localhost:3000/api'
-    : 'http://192.168.100.6:3000/api';
+export const BASE_URL = 'https://sistema-club-deportivo.vercel.app/api';
 
 export const TOKEN_KEY = 'auth_token';
 export const SESSION_KEY = 'club_river_session';

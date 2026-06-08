@@ -69,9 +69,11 @@ export default function InicioPublicoScreen() {
       <StatusBar barStyle="light-content" backgroundColor={colors.red} />
 
       <View style={styles.header}>
-        <View style={styles.logoPlaceholder}>
-          {/* TODO: reemplazar con escudo.png */}
-        </View>
+        <Image
+          source={require('../../../assets/images/logo_river_transparente.png')}
+          style={styles.logoPlaceholder}
+          resizeMode="contain"
+        />
         <Text style={styles.clubName}>RIVER PLATE</Text>
         <Text style={styles.clubSub}>Santo Tomé · Corrientes</Text>
         <View style={styles.diagonalStrip} />
@@ -128,13 +130,9 @@ const styles = StyleSheet.create({
     elevation:        2,
   },
   logoPlaceholder: {
-    width:         100,
-    height:        100,
-    borderRadius:  50,
-    backgroundColor: colors.bg,
-    borderWidth:   3,
-    borderColor:   colors.bg,
-    marginBottom:  16,
+    width:        100,
+    height:       100,
+    marginBottom: 16,
   },
   clubName: {
     ...typography.display,

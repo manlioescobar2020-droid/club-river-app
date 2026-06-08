@@ -9,59 +9,41 @@ import {
   RefreshControl,
   ScrollView,
   Modal,
+  Image,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Disciplina } from '../../types/disciplinas';
 import { disciplinasService } from '../../services/disciplinasService';
 import { colors, radius, typography } from '../../theme';
-
-// ─── Config visual por disciplina ─────────────────────────────────────────
-type IconName = React.ComponentProps<typeof Ionicons>['name'];
-
-const DISCIPLINAS_CONFIG: Record<string, IconName> = {
-  'Básquet':   'basketball-outline',
-  'Basquet':   'basketball-outline',
-  'Básket':    'basketball-outline',
-  'Newcom':    'tennisball-outline',
-  'Voleibol':  'tennisball-outline',
-  'Voley':     'tennisball-outline',
-  'Vóley':     'tennisball-outline',
-  'Zumba':     'musical-notes-outline',
-  'Fútbol':    'football-outline',
-  'Futbol':    'football-outline',
-  'Natación':  'water-outline',
-  'Tenis':     'tennisball-outline',
-  'Atletismo': 'walk-outline',
-  'Taekwondo': 'body-outline',
-};
-
-function getIcono(nombre: string): IconName {
-  return DISCIPLINAS_CONFIG[nombre] ?? 'ribbon-outline';
-}
+import { getDisciplinaImage } from '../../constants/disciplinasImages';
 
 // ─── Card ─────────────────────────────────────────────────────────────────
 function DisciplinaCard({ item, onPress }: { item: Disciplina; onPress: () => void }) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
-      <View style={styles.iconCircle}>
-        <Ionicons name={getIcono(item.nombre)} size={26} color={colors.red} />
-      </View>
+      <Image
+        source={{ uri: getDisciplinaImage(item.nombre) }}
+        style={styles.cardImage}
+        resizeMode="cover"
+      />
 
-      <View style={styles.cardInfo}>
-        <Text style={styles.cardNombre}>{item.nombre}</Text>
-        {!!item.descripcion && (
-          <Text style={styles.cardDesc} numberOfLines={1}>{item.descripcion}</Text>
-        )}
-        <View style={styles.precioBadge}>
-          <Text style={styles.cardPrecio}>
-            ${item.cuotaMensual.toLocaleString('es-AR')}/mes
-          </Text>
+      <View style={styles.cardRow}>
+        <View style={styles.cardInfo}>
+          <Text style={styles.cardNombre}>{item.nombre}</Text>
+          {!!item.descripcion && (
+            <Text style={styles.cardDesc} numberOfLines={1}>{item.descripcion}</Text>
+          )}
+          <View style={styles.precioBadge}>
+            <Text style={styles.cardPrecio}>
+              ${item.cuotaMensual.toLocaleString('es-AR')}/mes
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.inscribirseBtn}>
-        <Text style={styles.inscribirseBtnText}>Inscribirse</Text>
-        <Ionicons name="arrow-forward-outline" size={14} color={colors.red} />
+        <View style={styles.inscribirseBtn}>
+          <Text style={styles.inscribirseBtnText}>Inscribirse</Text>
+          <Ionicons name="arrow-forward-outline" size={14} color={colors.red} />
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -345,22 +327,24 @@ const styles = StyleSheet.create({
 
   // ── Card ──────────────────────────────────────────────────────────────
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.glassBorder,
+    overflow: 'hidden',
+    gap: 0,
+  },
+  cardImage: {
+    width: '100%',
+    height: 120,
+    borderRadius: 12,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
     gap: 14,
-  },
-  iconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: colors.redDim,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   cardInfo: {
     flex: 1,

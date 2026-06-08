@@ -86,8 +86,9 @@ export default function LoginScreen() {
         )}
         <View style={styles.logoWrapper}>
           <Image
-            source={require('../../../assets/icon.png')}
+            source={require('../../../assets/images/logo_river_transparente.png')}
             style={styles.logo}
+            resizeMode="contain"
           />
         </View>
         <Text style={styles.clubName}>CLUB RIVER PLATE</Text>
@@ -237,7 +238,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 58,
     height: 58,
-    borderRadius: 29,
   },
   clubName: {
     ...typography.display,

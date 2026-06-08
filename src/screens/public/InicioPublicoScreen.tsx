@@ -120,14 +120,14 @@ const styles = StyleSheet.create({
   content:   { paddingBottom: 0 },
 
   header: {
-    backgroundColor:  colors.red,
-    height:           260,
-    alignItems:       'center',
-    justifyContent:   'center',
+    backgroundColor:   colors.red,
+    alignItems:        'center',
+    justifyContent:    'center',
     paddingHorizontal: 20,
-    paddingTop:       20,
-    zIndex:           1,
-    elevation:        2,
+    paddingTop:        20,
+    paddingBottom:     30,
+    zIndex:            1,
+    elevation:         2,
   },
   logoPlaceholder: {
     width:        100,
@@ -149,6 +149,7 @@ const styles = StyleSheet.create({
     fontSize:     14,
     color:        colors.bg,
     letterSpacing: 2,
+    zIndex:        2,
   },
   diagonalStrip: {
     position:        'absolute',
@@ -158,6 +159,7 @@ const styles = StyleSheet.create({
     height:          40,
     backgroundColor: colors.bg,
     transform:       [{ rotate: '-3deg' }],
+    zIndex:          1,
   },
 
   section: {

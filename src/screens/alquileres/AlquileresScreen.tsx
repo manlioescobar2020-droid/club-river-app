@@ -8,7 +8,7 @@ import { colors } from '../../theme';
 
 interface EspacioCard {
   icono: React.ComponentProps<typeof Ionicons>['name'];
-  imageUrl?: string; // cuando haya foto real: assets/images/<nombre>.png o URL
+  imageUrl?: any;
   nombre: string;
   descripcion: string;
   tipo: TipoEspacio;
@@ -19,6 +19,7 @@ interface EspacioCard {
 const ESPACIOS: EspacioCard[] = [
   {
     icono:       'football-outline',
+    imageUrl:    require('../../../assets/images/alquiler_futbol.png'),
     nombre:      'Cancha de Fútbol 5',
     descripcion: 'Cancha exterior de fútbol 5',
     tipo:        'CANCHA_FUTBOL',
@@ -27,6 +28,7 @@ const ESPACIOS: EspacioCard[] = [
   },
   {
     icono:       'basketball-outline',
+    imageUrl:    require('../../../assets/images/alquiler_multiusos.png'),
     nombre:      'Cancha Multiusos',
     descripcion: 'Básquet · Vóley · Newcom · Fútbol de Salón',
     tipo:        'CANCHA_MULTIUSOS',
@@ -35,6 +37,7 @@ const ESPACIOS: EspacioCard[] = [
   },
   {
     icono:       'business-outline',
+    imageUrl:    require('../../../assets/images/alquiler_salon.png'),
     nombre:      'Salón de Eventos',
     descripcion: 'Salón techado para eventos y reuniones',
     tipo:        'SALON',
@@ -43,6 +46,7 @@ const ESPACIOS: EspacioCard[] = [
   },
   {
     icono:       'grid-outline',
+    imageUrl:    require('../../../assets/images/alquiler_salon_cancha.png'),
     nombre:      'Salón + Cancha',
     descripcion: 'Todo el predio disponible',
     tipo:        'SALON_CANCHA',
@@ -114,14 +118,14 @@ export default function AlquileresScreen({ navigation }: any) {
               >
                 <View style={[styles.iconBox, { backgroundColor: espacio.bgColor }]}>
                   {espacio.imageUrl
-                    ? <Image source={{ uri: espacio.imageUrl }} style={styles.cardImage} />
+                    ? <Image source={espacio.imageUrl} style={styles.cardImage} />
                     : <Ionicons name={espacio.icono} size={26} color={espacio.color} />
                   }
                 </View>
 
                 <View style={styles.cardInfo}>
-                  <Text style={styles.cardNombre} numberOfLines={1}>{espacio.nombre}</Text>
-                  <Text style={styles.cardDesc} numberOfLines={1}>{espacio.descripcion}</Text>
+                  <Text style={styles.cardNombre} numberOfLines={2}>{espacio.nombre}</Text>
+                  <Text style={styles.cardDesc}>{espacio.descripcion}</Text>
                 </View>
 
                 <View style={styles.cardRight}>

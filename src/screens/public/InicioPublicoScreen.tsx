@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StatusBar,
   Image,
+  ImageSourcePropType,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -14,7 +15,7 @@ import { colors, typography } from '../../theme';
 
 interface ActionCard {
   icon: React.ComponentProps<typeof Ionicons>['name'];
-  imageUrl?: string; // cuando haya foto real: assets/images/<nombre>.png o URL
+  imageUrl?: ImageSourcePropType;
   title: string;
   description: string;
   route: string;
@@ -25,6 +26,7 @@ interface ActionCard {
 const ACTION_CARDS: ActionCard[] = [
   {
     icon:        'business-outline',
+    imageUrl:    require('../../../assets/images/card_alquiler.png'),
     title:       'Alquilar un espacio',
     description: 'Reservá canchas, salón de eventos y más',
     route:       'Alquileres',
@@ -33,6 +35,7 @@ const ACTION_CARDS: ActionCard[] = [
   },
   {
     icon:        'basketball-outline',
+    imageUrl:    require('../../../assets/images/card_disciplinas.png'),
     title:       'Inscribirse en una disciplina',
     description: 'Fútbol, básquet, vóley y más',
     route:       'InscripcionPublica',
@@ -41,6 +44,7 @@ const ACTION_CARDS: ActionCard[] = [
   },
   {
     icon:        'card-outline',
+    imageUrl:    require('../../../assets/images/card_asociarse.png'),
     title:       'Asociarme al club',
     description: 'Convertite en socio y accedé a beneficios',
     route:       'Asociarse',
@@ -49,6 +53,7 @@ const ACTION_CARDS: ActionCard[] = [
   },
   {
     icon:        'megaphone-outline',
+    imageUrl:    require('../../../assets/images/card_noticias.png'),
     title:       'Noticias del club',
     description: 'Novedades, torneos y eventos',
     route:       'Noticias',
@@ -91,7 +96,7 @@ export default function InicioPublicoScreen() {
           >
             <View style={[styles.cardIcon, { backgroundColor: card.bgColor }]}>
               {card.imageUrl
-                ? <Image source={{ uri: card.imageUrl }} style={styles.cardImage} />
+                ? <Image source={card.imageUrl} style={styles.cardImage} />
                 : <Ionicons name={card.icon} size={28} color={card.color} />
               }
             </View>

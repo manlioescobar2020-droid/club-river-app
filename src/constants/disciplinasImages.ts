@@ -1,21 +1,23 @@
-const DISCIPLINAS_IMAGES: Record<string, string> = {
-  futbol:     'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&q=80',
-  natacion:   'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=400&q=80',
-  basquet:    'https://images.unsplash.com/photo-1546519638405-a9d1b14af44b?w=400&q=80',
-  basketball: 'https://images.unsplash.com/photo-1546519638405-a9d1b14af44b?w=400&q=80',
-  voley:      'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=400&q=80',
-  volleyball: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=400&q=80',
-  voleibol:   'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=400&q=80',
-  tenis:      'https://images.unsplash.com/photo-1542144582-1ba00456b5e3?w=400&q=80',
-  handball:   'https://images.unsplash.com/photo-1595429035839-c99c298ffdde?w=400&q=80',
-  gimnasia:   'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80',
-  atletismo:  'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&q=80',
-  newcom:     'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
-  zumba:      'https://images.unsplash.com/photo-1524594152303-9fd13543fe6e?w=400&q=80',
-  default:    'https://images.unsplash.com/photo-1526676037777-05a232554f77?w=400&q=80',
+import { ImageSourcePropType } from 'react-native';
+
+const DISCIPLINAS_IMAGES: Record<string, ImageSourcePropType> = {
+  futbol:     { uri: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&q=80' },
+  natacion:   { uri: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=400&q=80' },
+  basquet:    require('../../assets/images/basquet.png'),
+  basketball: require('../../assets/images/basquet.png'),
+  voley:      require('../../assets/images/voley.png'),
+  volleyball: require('../../assets/images/voley.png'),
+  voleibol:   require('../../assets/images/voley.png'),
+  tenis:      { uri: 'https://images.unsplash.com/photo-1542144582-1ba00456b5e3?w=400&q=80' },
+  handball:   { uri: 'https://images.unsplash.com/photo-1595429035839-c99c298ffdde?w=400&q=80' },
+  gimnasia:   { uri: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&q=80' },
+  atletismo:  { uri: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&q=80' },
+  newcom:     require('../../assets/images/newcon.png'),
+  zumba:      require('../../assets/images/zumba.png'),
+  default:    { uri: 'https://images.unsplash.com/photo-1526676037777-05a232554f77?w=400&q=80' },
 };
 
-export function getDisciplinaImage(nombre: string): string {
+export function getDisciplinaImage(nombre: string): ImageSourcePropType {
   const key = nombre
     .toLowerCase()
     .normalize('NFD')

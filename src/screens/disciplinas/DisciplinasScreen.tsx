@@ -22,7 +22,7 @@ function DisciplinaCard({ item, onPress }: { item: Disciplina; onPress: () => vo
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
       <Image
-        source={{ uri: getDisciplinaImage(item.nombre) }}
+        source={getDisciplinaImage(item.nombre)}
         style={styles.cardImage}
         resizeMode="cover"
       />

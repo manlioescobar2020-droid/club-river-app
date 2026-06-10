@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PerfilScreen from '../screens/perfil/PerfilScreen';
+import CambiarContrasenaScreen from '../screens/perfil/CambiarContrasenaScreen';
 import AlquileresHistorialScreen from '../screens/socios/AlquileresHistorialScreen';
 import ParticipantesACargoScreen from '../screens/socios/ParticipantesACargoScreen';
 import { colors } from '../theme';
@@ -17,6 +18,11 @@ export default function PerfilStackNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="PerfilMain" component={PerfilScreen} />
+      <Stack.Screen
+        name="CambiarContrasena"
+        component={CambiarContrasenaScreen}
+        options={{ headerShown: true, title: 'Cambiar Contraseña', ...HEADER_OPTIONS }}
+      />
       <Stack.Screen
         name="AlquileresHistorial"
         component={AlquileresHistorialScreen}

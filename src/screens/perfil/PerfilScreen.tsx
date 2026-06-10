@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Linking,
   Platform,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -162,19 +163,24 @@ export default function PerfilScreen() {
           <InfoRow
             icon="lock-closed-outline"
             label="Cambiar Contraseña"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('CambiarContrasena')}
           />
           <View style={styles.rowDivider} />
           <InfoRow
             icon="notifications-outline"
             label="Notificaciones"
-            onPress={() => {}}
+            onPress={() => Alert.alert(
+              'Notificaciones',
+              'Las notificaciones push se configuran desde los ajustes de tu dispositivo.'
+            )}
           />
           <View style={styles.rowDivider} />
           <InfoRow
             icon="help-circle-outline"
             label="Ayuda y Soporte"
-            onPress={() => {}}
+            onPress={() => Linking.openURL(
+              'https://wa.me/5493756415586?text=Hola,%20necesito%20ayuda%20con%20la%20app'
+            )}
           />
         </View>
       </View>

@@ -1,9 +1,7 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import { NavigationContainer, DarkTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Ionicons from '@expo/vector-icons/Ionicons';
 
 import InicioPublicoScreen from '../screens/public/InicioPublicoScreen';
 import NoticiasScreen from '../screens/noticias/NoticiasScreen';
@@ -21,7 +19,6 @@ import MisCategoriasScreen from '../screens/participantes/MisCategoriasScreen';
 import CuotasScreen from '../screens/cuotas/CuotasScreen';
 
 import { useAuth } from '../context/AuthContext';
-import { useAlquiler } from '../context/AlquilerContext';
 import { colors } from '../theme';
 
 const NAV_THEME = {
@@ -40,24 +37,6 @@ export const navigationRef = createNavigationContainerRef();
 
 const PubStack = createNativeStackNavigator();
 const PrivTab  = createBottomTabNavigator();
-
-type TabIconProps = {
-  name: React.ComponentProps<typeof Ionicons>['name'];
-  focused: boolean;
-  color: string;
-  badge?: boolean;
-};
-
-function TabIcon({ name, focused, color, badge }: TabIconProps) {
-  return (
-    <View style={styles.iconOuter}>
-      <View style={[styles.iconInner, focused && styles.iconInnerActive]}>
-        <Ionicons name={name} size={24} color={color} />
-      </View>
-      {badge && <View style={styles.badgeDot} />}
-    </View>
-  );
-}
 
 function PublicNavigator() {
   return (
@@ -117,13 +96,11 @@ function PublicNavigator() {
 }
 
 function PrivateNavigator() {
-  const { user }                 = useAuth();
-  const { state: alquilerState } = useAlquiler();
+  const { user } = useAuth();
 
-  const isParticipante        = user?.rol === 'PARTICIPANTE';
-  const isProfesor            = user?.rol === 'PROFESOR';
-  const tieneCuotas           = ['SOCIO', 'PARTICIPANTE', 'TUTOR_RESPONSABLE'].includes(user?.rol ?? '');
-  const hasPendingReservation = alquilerState.tipoEspacio !== null;
+  const isParticipante = user?.rol === 'PARTICIPANTE';
+  const isProfesor     = user?.rol === 'PROFESOR';
+  const tieneCuotas    = ['SOCIO', 'PARTICIPANTE', 'TUTOR_RESPONSABLE'].includes(user?.rol ?? '');
 
   return (
     <PrivTab.Navigator
@@ -134,9 +111,9 @@ function PrivateNavigator() {
           backgroundColor: colors.bg,
           borderTopWidth:  1,
           borderTopColor:  colors.border,
-          height:          70,
-          paddingBottom:   10,
-          paddingTop:      6,
+          height:          48,
+          paddingBottom:   8,
+          paddingTop:      0,
           elevation:       0,
         },
         tabBarLabelStyle: {
@@ -153,9 +130,6 @@ function PrivateNavigator() {
         component={InicioScreen}
         options={{
           tabBarLabel: 'INICIO',
-          tabBarIcon: ({ focused, color }) => (
-            <TabIcon name={focused ? 'home' : 'home-outline'} focused={focused} color={color} />
-          ),
         }}
       />
       <PrivTab.Screen
@@ -163,14 +137,6 @@ function PrivateNavigator() {
         component={AlquileresStack}
         options={{
           tabBarLabel: 'ALQUILER',
-          tabBarIcon: ({ focused, color }) => (
-            <TabIcon
-              name={focused ? 'calendar' : 'calendar-outline'}
-              focused={focused}
-              color={color}
-              badge={hasPendingReservation}
-            />
-          ),
         }}
       />
       {isParticipante ? (
@@ -179,9 +145,6 @@ function PrivateNavigator() {
           component={MisCategoriasScreen}
           options={{
             tabBarLabel: 'CATEG.',
-            tabBarIcon: ({ focused, color }) => (
-              <TabIcon name={focused ? 'ribbon' : 'ribbon-outline'} focused={focused} color={color} />
-            ),
           }}
         />
       ) : (
@@ -190,9 +153,6 @@ function PrivateNavigator() {
           component={DisciplinasStack}
           options={{
             tabBarLabel: 'DEPORTE',
-            tabBarIcon: ({ focused, color }) => (
-              <TabIcon name={focused ? 'trophy' : 'trophy-outline'} focused={focused} color={color} />
-            ),
           }}
         />
       )}
@@ -202,9 +162,6 @@ function PrivateNavigator() {
           component={MisClasesStack}
           options={{
             tabBarLabel: 'CLASES',
-            tabBarIcon: ({ focused, color }) => (
-              <TabIcon name={focused ? 'school' : 'school-outline'} focused={focused} color={color} />
-            ),
           }}
         />
       )}
@@ -214,9 +171,6 @@ function PrivateNavigator() {
           component={CuotasScreen}
           options={{
             tabBarLabel: 'CUOTAS',
-            tabBarIcon: ({ focused, color }) => (
-              <TabIcon name={focused ? 'wallet' : 'wallet-outline'} focused={focused} color={color} />
-            ),
           }}
         />
       )}
@@ -225,9 +179,6 @@ function PrivateNavigator() {
         component={PerfilStackNavigator}
         options={{
           tabBarLabel: 'PERFIL',
-          tabBarIcon: ({ focused, color }) => (
-            <TabIcon name={focused ? 'person' : 'person-outline'} focused={focused} color={color} />
-          ),
         }}
       />
     </PrivTab.Navigator>
@@ -243,27 +194,3 @@ export default function AppNavigator() {
   );
 }
 
-const styles = StyleSheet.create({
-  iconOuter: {
-    position:       'relative',
-    alignItems:     'center',
-    justifyContent: 'center',
-  },
-  iconInner: {
-    borderRadius:      12,
-    paddingHorizontal: 14,
-    paddingVertical:   5,
-  },
-  iconInnerActive: {
-    backgroundColor: colors.redDim,
-  },
-  badgeDot: {
-    position:        'absolute',
-    top:             2,
-    right:           4,
-    width:           8,
-    height:          8,
-    borderRadius:    4,
-    backgroundColor: colors.red,
-  },
-});

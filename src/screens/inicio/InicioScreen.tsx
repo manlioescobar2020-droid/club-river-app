@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -18,32 +19,9 @@ import cuotasService, { Cuota } from '../../services/cuotasService';
 import { disciplinasService } from '../../services/disciplinasService';
 import { Disciplina } from '../../types/disciplinas';
 import { colors, radius, typography } from '../../theme';
+import { getDisciplinaImage } from '../../constants/disciplinasImages';
 
 /* ─── Helpers ──────────────────────────────────────────── */
-
-const SPORT_EMOJI: Record<string, string> = {
-  futbol: '⚽', fútbol: '⚽',
-  tenis: '🎾',
-  basquet: '🏀', básquet: '🏀',
-  natacion: '🏊', natación: '🏊',
-  voley: '🏐', vóley: '🏐',
-  handball: '🤾',
-  atletismo: '🏃',
-  karate: '🥋', judo: '🥋',
-  hockey: '🏑',
-  rugby: '🏉',
-  padel: '🎾', pádel: '🎾',
-  yoga: '🧘',
-  gimnasia: '🤸',
-};
-
-function sportEmoji(nombre: string): string {
-  const lower = nombre.toLowerCase();
-  for (const [k, v] of Object.entries(SPORT_EMOJI)) {
-    if (lower.includes(k)) return v;
-  }
-  return '🏅';
-}
 
 function formatFecha(str: string): string {
   const [yyyy, mm, dd] = str.slice(0, 10).split('-');
@@ -110,7 +88,11 @@ export default function InicioScreen() {
       disciplinasService.obtenerDisciplinas()
         .then(data => {
           if (!active) return;
-          setDisciplinas(data.filter(d => d.activa));
+          const unicas = data.filter(d => d.activa)
+            .filter((d, index, self) =>
+              index === self.findIndex(x => x.id === d.id)
+            );
+          setDisciplinas(unicas);
         })
         .catch(() => {})
         .finally(() => { if (active) setLoadingDisc(false); });
@@ -253,7 +235,11 @@ export default function InicioScreen() {
                   onPress={() => navigation.navigate('Disciplinas')}
                   activeOpacity={0.75}
                 >
-                  <Text style={styles.discEmoji}>{sportEmoji(d.nombre)}</Text>
+                  <Image
+                    source={getDisciplinaImage(d.nombre)}
+                    style={{ width: 80, height: 80, borderRadius: 12 }}
+                    resizeMode="cover"
+                  />
                   <Text style={styles.discName} numberOfLines={2}>{d.nombre}</Text>
                   <Text style={styles.discPrecio}>
                     ${d.cuotaMensual.toLocaleString('es-AR')}/mes
@@ -275,9 +261,11 @@ export default function InicioScreen() {
             onPress={() => navigation.navigate('Alquileres')}
             activeOpacity={0.8}
           >
-            <View style={styles.alqIconBox}>
-              <Ionicons name="calendar-outline" size={26} color={colors.red} />
-            </View>
+            <Image
+              source={require('../../../assets/images/card_asociarse.png')}
+              style={{ width: 56, height: 56, borderRadius: 10 }}
+              resizeMode="cover"
+            />
             <View style={styles.alqText}>
               <Text style={styles.alqTitle}>Reservá un espacio</Text>
               <Text style={styles.alqSub}>Cancha · Salón · Salón + Cancha</Text>
@@ -384,7 +372,6 @@ const styles = StyleSheet.create({
     borderColor:     colors.border,
     gap:             6,
   },
-  discEmoji:     { fontSize: 26 },
   discName:      { ...typography.bodyMedium, fontSize: 13, color: colors.text },
   discPrecio:    { ...typography.body,       fontSize: 11, color: colors.muted },
   discBadge: {

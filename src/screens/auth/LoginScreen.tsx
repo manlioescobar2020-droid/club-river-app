@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Image,
   Alert,
+  Linking,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -178,7 +179,25 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             {/* Olvidé contraseña */}
-            <TouchableOpacity style={styles.forgotBtn} onPress={() => {}}>
+            <TouchableOpacity
+              style={styles.forgotBtn}
+              onPress={() =>
+                Alert.alert(
+                  'Recuperar contraseña',
+                  'Envianos un mensaje por WhatsApp y te ayudamos a recuperar tu acceso.',
+                  [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                      text: 'Ir a WhatsApp',
+                      onPress: () =>
+                        Linking.openURL(
+                          'https://wa.me/5493756415586?text=Hola,%20olvidé%20mi%20contraseña%20de%20la%20app'
+                        ),
+                    },
+                  ]
+                )
+              }
+            >
               <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
             </TouchableOpacity>
 

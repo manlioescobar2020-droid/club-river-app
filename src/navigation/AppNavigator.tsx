@@ -9,6 +9,7 @@ import NoticiaDetalleScreen from '../screens/noticias/NoticiaDetalleScreen';
 import AsociarseScreen from '../screens/asociarse/AsociarseScreen';
 import InfoClubScreen from '../screens/public/InfoClubScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
+import RecuperarContrasenaScreen from '../screens/auth/RecuperarContrasenaScreen';
 import AlquileresStack from './AlquileresStack';
 import DisciplinasStack from './DisciplinasStack';
 
@@ -90,6 +91,11 @@ function PublicNavigator() {
         name="InfoClub"
         component={InfoClubScreen}
         options={{ title: 'Información del Club', headerBackTitle: 'Volver' }}
+      />
+      <PubStack.Screen
+        name="RecuperarContrasena"
+        component={RecuperarContrasenaScreen}
+        options={{ headerShown: false }}
       />
     </PubStack.Navigator>
   );

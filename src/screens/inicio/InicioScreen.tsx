@@ -58,10 +58,9 @@ type QuickItem = {
 };
 
 const QUICK: QuickItem[] = [
-  { label: 'Cuotas',      icon: 'card-outline',                 highlight: true,  route: 'Cuotas'      },
-  { label: 'Alquilar',    icon: 'calendar-outline',             highlight: false, route: 'Alquileres'  },
-  { label: 'Disciplinas', icon: 'trophy-outline',               highlight: false, route: 'Disciplinas' },
-  { label: 'Asistente',   icon: 'chatbubble-ellipses-outline',  highlight: false, route: null          },
+  { label: 'Cuotas',      icon: 'card-outline',      highlight: true,  route: 'Cuotas'      },
+  { label: 'Alquilar',    icon: 'calendar-outline',  highlight: false, route: 'Alquileres'  },
+  { label: 'Disciplinas', icon: 'trophy-outline',    highlight: false, route: 'Disciplinas' },
 ];
 
 /* ─── Screen ───────────────────────────────────────────── */

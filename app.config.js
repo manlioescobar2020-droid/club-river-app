@@ -28,6 +28,7 @@ module.exports = {
     plugins: [
       "expo-asset",
       "expo-font",
+      "expo-web-browser",
       [
         "expo-notifications",
         {

@@ -9,15 +9,19 @@ import {
   Animated,
   ActivityIndicator,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as WebBrowser from 'expo-web-browser';
 
 import { useAuth } from '../../context/AuthContext';
 import cuotasService, { Cuota } from '../../services/cuotasService';
 import { disciplinasService } from '../../services/disciplinasService';
+import suscripcionService from '../../services/suscripcionService';
 import { Disciplina } from '../../types/disciplinas';
+import { Suscripcion } from '../../types/suscripcion';
 import { colors, radius, typography } from '../../theme';
 import { getDisciplinaImage } from '../../constants/disciplinasImages';
 
@@ -32,6 +36,12 @@ const ESTADO_COLOR: Record<string, string> = {
   PENDIENTE: colors.yellow,
   VENCIDA:   colors.redBright,
   PAGADA:    colors.green,
+};
+
+const SUSC_BADGE: Record<string, { color: string; bg: string; label: string }> = {
+  AUTHORIZED: { color: colors.green,  bg: colors.greenDim,  label: 'ACTIVO'    },
+  PENDING:    { color: colors.yellow, bg: colors.yellowDim, label: 'PENDIENTE' },
+  PAUSED:     { color: colors.yellow, bg: colors.yellowDim, label: 'PAUSADA'   },
 };
 
 /* ─── Animation hook ───────────────────────────────────── */
@@ -71,13 +81,108 @@ export default function InicioScreen() {
   const insets     = useSafeAreaInsets();
 
   const [cuota, setCuota]               = useState<Cuota | null>(null);
+  const [cuotaError, setCuotaError]     = useState(false);
   const [disciplinas, setDisciplinas]   = useState<Disciplina[]>([]);
   const [loadingDisc, setLoadingDisc]   = useState(true);
+
+  const [suscripcion, setSuscripcion]         = useState<Suscripcion | null>(null);
+  const [suscError, setSuscError]             = useState<'session' | 'generic' | null>(null);
+  const [loadingSusc, setLoadingSusc]         = useState(true);
+  const [incluyeDisciplinas, setIncluyeDisc]  = useState(false);
+  const [accionSuscCargando, setAccionSusc]   = useState(false);
+
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
   const heroAnim = useSectionAnim(0);
   const gridAnim = useSectionAnim(100);
   const discAnim = useSectionAnim(200);
   const alqAnim  = useSectionAnim(300);
+  const suscAnim = useSectionAnim(400);
+
+  const cargarCuotas = useCallback(async () => {
+    try {
+      const data = await cuotasService.getCuotas();
+      if (!mountedRef.current) return;
+      const next = data
+        .filter(c => c.estado === 'PENDIENTE' || c.estado === 'VENCIDA')
+        .sort((a, b) => new Date(a.fechaVencimiento).getTime() - new Date(b.fechaVencimiento).getTime())[0];
+      setCuota(next ?? null);
+      setCuotaError(false);
+    } catch {
+      if (!mountedRef.current) return;
+      setCuota(null);
+      setCuotaError(true);
+    }
+  }, []);
+
+  const cargarSuscripcion = useCallback(async () => {
+    try {
+      const data = await suscripcionService.getSuscripcion();
+      if (!mountedRef.current) return;
+      setSuscripcion(data);
+      setSuscError(null);
+    } catch (err: any) {
+      if (!mountedRef.current) return;
+      setSuscError(err?.status === 401 || err?.status === 403 ? 'session' : 'generic');
+    }
+  }, []);
+
+  function handleReintentarSusc() {
+    setLoadingSusc(true);
+    cargarSuscripcion().finally(() => { if (mountedRef.current) setLoadingSusc(false); });
+  }
+
+  async function handleAdherirse() {
+    setAccionSusc(true);
+    try {
+      const { init_point } = await suscripcionService.crearSuscripcion(incluyeDisciplinas);
+      if (!init_point) {
+        Alert.alert('Error', 'No se recibió el link de autorización. Intentá de nuevo.');
+        return;
+      }
+      await WebBrowser.openBrowserAsync(init_point);
+      await cargarSuscripcion();
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'No se pudo iniciar la adhesión.');
+    } finally {
+      setAccionSusc(false);
+    }
+  }
+
+  async function handleContinuarMp() {
+    if (!suscripcion?.initPoint) return;
+    setAccionSusc(true);
+    try {
+      await WebBrowser.openBrowserAsync(suscripcion.initPoint);
+      await cargarSuscripcion();
+    } finally {
+      setAccionSusc(false);
+    }
+  }
+
+  async function ejecutarCancelacion() {
+    setAccionSusc(true);
+    try {
+      await suscripcionService.cancelarSuscripcion();
+      await cargarSuscripcion();
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'No se pudo cancelar el pago automático.');
+    } finally {
+      setAccionSusc(false);
+    }
+  }
+
+  function handleCancelarSusc() {
+    Alert.alert(
+      'Cancelar pago automático',
+      '¿Confirmás que querés cancelar el débito automático? Vas a seguir siendo socio pero tendrás que pagar las cuotas manualmente.',
+      [
+        { text: 'Volver', style: 'cancel' },
+        { text: 'Sí, cancelar', style: 'destructive', onPress: ejecutarCancelacion },
+      ]
+    );
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -97,15 +202,16 @@ export default function InicioScreen() {
         .finally(() => { if (active) setLoadingDisc(false); });
 
       if (user) {
-        cuotasService.getCuotas()
-          .then(data => {
-            if (!active) return;
-            const next = data.find(c => c.estado === 'PENDIENTE' || c.estado === 'VENCIDA');
-            setCuota(next ?? null);
-          })
-          .catch(() => {});
+        cargarCuotas();
+
+        setLoadingSusc(true);
+        cargarSuscripcion().finally(() => { if (active) setLoadingSusc(false); });
       } else {
         setCuota(null);
+        setCuotaError(false);
+        setSuscripcion(null);
+        setSuscError(null);
+        setLoadingSusc(false);
       }
 
       return () => { active = false; };
@@ -147,6 +253,8 @@ export default function InicioScreen() {
                     <Text style={styles.loginPromptSub}>Tocá aquí para acceder →</Text>
                   </View>
                 </TouchableOpacity>
+              ) : cuotaError ? (
+                <Text style={styles.cuotaAlDia}>⚠️ No pudimos cargar tus cuotas</Text>
               ) : cuota ? (
                 <>
                   <Text style={styles.cuotaTitulo}>
@@ -272,6 +380,159 @@ export default function InicioScreen() {
             <Ionicons name="chevron-forward-outline" size={20} color={colors.muted} />
           </TouchableOpacity>
         </Animated.View>
+
+        {/* ── Sección 5: Pago automático ─────────────────── */}
+        {user && (
+          <Animated.View style={[styles.section, suscAnim]}>
+            <Text style={styles.sectionTitle}>PAGO AUTOMÁTICO</Text>
+
+            {loadingSusc ? (
+              <ActivityIndicator color={colors.red} style={{ marginVertical: 20 }} />
+            ) : suscError === 'session' ? (
+              <View style={styles.suscCard}>
+                <View style={styles.suscHeaderRow}>
+                  <View style={styles.suscIconBox}>
+                    <Ionicons name="alert-circle-outline" size={20} color={colors.yellow} />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 14 }}>
+                    <Text style={styles.suscTitle}>No pudimos verificar tu suscripción</Text>
+                    <Text style={styles.suscSub}>
+                      Cerrá sesión y volvé a ingresar para actualizar tus datos.
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ) : suscError === 'generic' ? (
+              <View style={styles.suscCard}>
+                <View style={styles.suscHeaderRow}>
+                  <View style={styles.suscIconBox}>
+                    <Ionicons name="cloud-offline-outline" size={20} color={colors.muted} />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 14 }}>
+                    <Text style={styles.suscTitle}>No pudimos cargar tu pago automático</Text>
+                    <Text style={styles.suscSub}>Revisá tu conexión e intentá de nuevo.</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={styles.suscBtnPrimary}
+                  onPress={handleReintentarSusc}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.suscBtnPrimaryText}>Reintentar</Text>
+                </TouchableOpacity>
+              </View>
+            ) : !suscripcion || suscripcion.estado === 'CANCELLED' ? (
+              <View style={styles.suscCard}>
+                <View style={styles.suscHeaderRow}>
+                  <View style={styles.suscIconBox}>
+                    <Ionicons name="flash-outline" size={20} color={colors.red} />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 14 }}>
+                    <Text style={styles.suscTitle}>Activá el pago automático</Text>
+                    <Text style={styles.suscSub}>
+                      Débito mensual vía Mercado Pago — no te olvides más de pagar la cuota.
+                    </Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.suscCheckRow}
+                  onPress={() => setIncluyeDisc(v => !v)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={incluyeDisciplinas ? 'checkbox' : 'checkbox-outline'}
+                    size={22}
+                    color={incluyeDisciplinas ? colors.red : colors.muted}
+                  />
+                  <Text style={styles.suscCheckLabel}>Incluir cuotas de disciplinas</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.suscBtnPrimary, accionSuscCargando && styles.suscBtnDisabled]}
+                  onPress={handleAdherirse}
+                  disabled={accionSuscCargando}
+                  activeOpacity={0.85}
+                >
+                  {accionSuscCargando ? (
+                    <ActivityIndicator color={colors.text} size="small" />
+                  ) : (
+                    <Text style={styles.suscBtnPrimaryText}>Adherirme al pago automático</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={[styles.suscCard, { backgroundColor: SUSC_BADGE[suscripcion.estado].bg }]}>
+                <View style={styles.suscHeaderRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.suscTitle}>
+                      {suscripcion.estado === 'AUTHORIZED'
+                        ? 'Pago automático activo'
+                        : suscripcion.estado === 'PENDING'
+                        ? 'Falta autorizar en Mercado Pago'
+                        : 'Pago automático pausado'}
+                    </Text>
+                  </View>
+                  <View style={[styles.suscBadge, { borderColor: SUSC_BADGE[suscripcion.estado].color }]}>
+                    <Text style={[styles.suscBadgeText, { color: SUSC_BADGE[suscripcion.estado].color }]}>
+                      {SUSC_BADGE[suscripcion.estado].label}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.suscDataBox}>
+                  <View style={styles.suscDataRow}>
+                    <Text style={styles.suscDataLabel}>Monto mensual</Text>
+                    <Text style={styles.suscDataValue}>
+                      ${Number(suscripcion.montoMensual).toLocaleString('es-AR')}
+                    </Text>
+                  </View>
+                  <View style={styles.suscDataRow}>
+                    <Text style={styles.suscDataLabel}>Incluye</Text>
+                    <Text style={styles.suscDataValue}>
+                      {[
+                        suscripcion.incluyeSocietaria  ? 'Cuota societaria' : null,
+                        suscripcion.incluyeDisciplinas ? 'Disciplinas'      : null,
+                      ].filter(Boolean).join(' + ')}
+                    </Text>
+                  </View>
+                  {suscripcion.ultimoPagoFecha && (
+                    <View style={styles.suscDataRow}>
+                      <Text style={styles.suscDataLabel}>Último débito</Text>
+                      <Text style={styles.suscDataValue}>{formatFecha(suscripcion.ultimoPagoFecha)}</Text>
+                    </View>
+                  )}
+                </View>
+
+                {suscripcion.estado !== 'AUTHORIZED' && suscripcion.initPoint && (
+                  <TouchableOpacity
+                    style={[styles.suscBtnPrimary, accionSuscCargando && styles.suscBtnDisabled]}
+                    onPress={handleContinuarMp}
+                    disabled={accionSuscCargando}
+                    activeOpacity={0.85}
+                  >
+                    {accionSuscCargando ? (
+                      <ActivityIndicator color={colors.text} size="small" />
+                    ) : (
+                      <Text style={styles.suscBtnPrimaryText}>
+                        {suscripcion.estado === 'PENDING' ? 'Completar autorización' : 'Reactivar en Mercado Pago'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity
+                  style={styles.suscBtnSecondary}
+                  onPress={handleCancelarSusc}
+                  disabled={accionSuscCargando}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.suscBtnSecondaryText}>Cancelar pago automático</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </Animated.View>
+        )}
 
         <View style={{ height: 12 }} />
       </ScrollView>
@@ -412,4 +673,66 @@ const styles = StyleSheet.create({
   alqText:  { flex: 1, marginLeft: 14 },
   alqTitle: { ...typography.bodySemiBold, fontSize: 15, color: colors.text },
   alqSub:   { ...typography.body,         fontSize: 12, color: colors.muted, marginTop: 3 },
+
+  /* Pago automático */
+  suscCard: {
+    backgroundColor: colors.surface,
+    borderWidth:     1,
+    borderColor:     colors.glassBorder,
+    borderRadius:    radius.md,
+    padding:         18,
+  },
+  suscHeaderRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  suscIconBox: {
+    width:           40,
+    height:          40,
+    borderRadius:    radius.sm,
+    backgroundColor: colors.redDim,
+    alignItems:      'center',
+    justifyContent:  'center',
+  },
+  suscTitle: { ...typography.bodySemiBold, fontSize: 15, color: colors.text },
+  suscSub:   { ...typography.body,         fontSize: 12, color: colors.muted, marginTop: 3 },
+  suscBadge: {
+    borderWidth:       1,
+    borderRadius:      radius.sm,
+    paddingHorizontal: 10,
+    paddingVertical:   4,
+    marginLeft:        10,
+  },
+  suscBadgeText: { ...typography.bodyBold, fontSize: 10, letterSpacing: 1 },
+
+  suscCheckRow:   { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16 },
+  suscCheckLabel: { ...typography.body, fontSize: 13, color: colors.text },
+
+  suscBtnPrimary: {
+    marginTop:        16,
+    backgroundColor:  colors.red,
+    borderRadius:     radius.sm,
+    paddingVertical:  13,
+    alignItems:       'center',
+    justifyContent:   'center',
+  },
+  suscBtnDisabled:     { opacity: 0.6 },
+  suscBtnPrimaryText:  { ...typography.bodyBold, fontSize: 14, color: colors.text },
+
+  suscBtnSecondary: {
+    marginTop:        10,
+    alignItems:       'center',
+    justifyContent:   'center',
+    paddingVertical:  8,
+  },
+  suscBtnSecondaryText: { ...typography.bodyMedium, fontSize: 12, color: colors.muted },
+
+  suscDataBox: {
+    marginTop:         16,
+    backgroundColor:   colors.glass,
+    borderRadius:      radius.sm,
+    paddingHorizontal: 14,
+    paddingVertical:   12,
+    gap:               8,
+  },
+  suscDataRow:   { flexDirection: 'row', justifyContent: 'space-between' },
+  suscDataLabel: { ...typography.body,     fontSize: 12, color: colors.muted },
+  suscDataValue: { ...typography.bodyBold, fontSize: 13, color: colors.text },
 });

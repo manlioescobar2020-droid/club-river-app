@@ -9,3 +9,9 @@ export interface Suscripcion {
   ultimoPagoFecha: string | null;
   initPoint: string | null;
 }
+
+export interface SuscripcionPreview {
+  montoBase: number;
+  montoDisciplinas: number;
+  disciplinas: { nombre: string; monto: number }[];
+}

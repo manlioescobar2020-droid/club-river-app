@@ -21,7 +21,7 @@ import cuotasService, { Cuota } from '../../services/cuotasService';
 import { disciplinasService } from '../../services/disciplinasService';
 import suscripcionService from '../../services/suscripcionService';
 import { Disciplina } from '../../types/disciplinas';
-import { Suscripcion } from '../../types/suscripcion';
+import { Suscripcion, SuscripcionPreview } from '../../types/suscripcion';
 import { colors, radius, typography } from '../../theme';
 import { getDisciplinaImage } from '../../constants/disciplinasImages';
 
@@ -30,6 +30,10 @@ import { getDisciplinaImage } from '../../constants/disciplinasImages';
 function formatFecha(str: string): string {
   const [yyyy, mm, dd] = str.slice(0, 10).split('-');
   return `${dd}/${mm}/${yyyy}`;
+}
+
+function formatMonto(monto: number): string {
+  return `$${monto.toLocaleString('es-AR')}`;
 }
 
 const ESTADO_COLOR: Record<string, string> = {
@@ -86,6 +90,7 @@ export default function InicioScreen() {
   const [loadingDisc, setLoadingDisc]   = useState(true);
 
   const [suscripcion, setSuscripcion]         = useState<Suscripcion | null>(null);
+  const [suscPreview, setSuscPreview]         = useState<SuscripcionPreview | null>(null);
   const [suscError, setSuscError]             = useState<'session' | 'generic' | null>(null);
   const [loadingSusc, setLoadingSusc]         = useState(true);
   const [incluyeDisciplinas, setIncluyeDisc]  = useState(false);
@@ -118,9 +123,10 @@ export default function InicioScreen() {
 
   const cargarSuscripcion = useCallback(async () => {
     try {
-      const data = await suscripcionService.getSuscripcion();
+      const { suscripcion, preview } = await suscripcionService.getSuscripcion();
       if (!mountedRef.current) return;
-      setSuscripcion(data);
+      setSuscripcion(suscripcion);
+      setSuscPreview(preview);
       setSuscError(null);
     } catch (err: any) {
       if (!mountedRef.current) return;
@@ -134,6 +140,7 @@ export default function InicioScreen() {
   }
 
   async function handleAdherirse() {
+    console.log('[DEBUG-SUSCRIP] handleAdherirse -> incluyeDisciplinas =', incluyeDisciplinas);
     setAccionSusc(true);
     try {
       const { init_point } = await suscripcionService.crearSuscripcion(incluyeDisciplinas);
@@ -437,7 +444,7 @@ export default function InicioScreen() {
 
                 <TouchableOpacity
                   style={styles.suscCheckRow}
-                  onPress={() => setIncluyeDisc(v => !v)}
+                  onPress={() => setIncluyeDisc(v => { console.log('[DEBUG-SUSCRIP] checkbox toggled -> nuevo valor =', !v); return !v; })}
                   activeOpacity={0.7}
                 >
                   <Ionicons
@@ -447,6 +454,26 @@ export default function InicioScreen() {
                   />
                   <Text style={styles.suscCheckLabel}>Incluir cuotas de disciplinas</Text>
                 </TouchableOpacity>
+
+                {suscPreview && (
+                  <View style={styles.suscDataBox}>
+                    <View style={styles.suscDataRow}>
+                      <Text style={styles.suscDataLabel}>Total a debitar</Text>
+                      <Text style={styles.suscDataValue}>
+                        {formatMonto(
+                          suscPreview.montoBase + (incluyeDisciplinas ? suscPreview.montoDisciplinas : 0)
+                        )}/mes
+                      </Text>
+                    </View>
+                    {incluyeDisciplinas && suscPreview.montoDisciplinas > 0 && (
+                      <Text style={styles.suscSub}>
+                        {suscPreview.disciplinas
+                          .map(d => `${d.nombre} ${formatMonto(d.monto)}`)
+                          .join(' + ')}
+                      </Text>
+                    )}
+                  </View>
+                )}
 
                 <TouchableOpacity
                   style={[styles.suscBtnPrimary, accionSuscCargando && styles.suscBtnDisabled]}

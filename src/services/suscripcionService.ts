@@ -10,7 +10,6 @@ async function getSuscripcion(): Promise<{ suscripcion: Suscripcion | null; prev
 }
 
 async function crearSuscripcion(incluyeDisciplinas: boolean): Promise<{ init_point: string }> {
-  console.log('[DEBUG-SUSCRIP] api.post body =', JSON.stringify({ incluyeDisciplinas }));
   const response = await api.post('/mi-cuenta/suscripcion', { incluyeDisciplinas });
   return response.data;
 }

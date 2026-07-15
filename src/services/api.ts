@@ -18,10 +18,6 @@ const api = axios.create({
 api.interceptors.request.use(async (config) => {
   console.log(`[API] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
 
-  if (config.url?.includes('suscripcion')) {
-    console.log('[DEBUG-SUSCRIP] interceptor config.data =', config.data);
-  }
-
   try {
     // SecureStore solo funciona en nativo; en web usar localStorage
     let token: string | null = null;

@@ -140,7 +140,6 @@ export default function InicioScreen() {
   }
 
   async function handleAdherirse() {
-    console.log('[DEBUG-SUSCRIP] handleAdherirse -> incluyeDisciplinas =', incluyeDisciplinas);
     setAccionSusc(true);
     try {
       const { init_point } = await suscripcionService.crearSuscripcion(incluyeDisciplinas);
@@ -444,7 +443,7 @@ export default function InicioScreen() {
 
                 <TouchableOpacity
                   style={styles.suscCheckRow}
-                  onPress={() => setIncluyeDisc(v => { console.log('[DEBUG-SUSCRIP] checkbox toggled -> nuevo valor =', !v); return !v; })}
+                  onPress={() => setIncluyeDisc(v => !v)}
                   activeOpacity={0.7}
                 >
                   <Ionicons

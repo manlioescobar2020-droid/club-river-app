@@ -105,7 +105,7 @@ export default function RecibosScreen() {
 
         {esCuota && item.cuotas && item.cuotas.length > 0 && (
           <Text style={styles.cuotasText}>
-            Cuotas {item.cuotas.map((c) => `${c.mes}/${c.anio}`).join(', ')}
+            Cuotas {item.cuotas.map((c) => `${c.mes} ${c.anio}`).join(', ')}
           </Text>
         )}
 

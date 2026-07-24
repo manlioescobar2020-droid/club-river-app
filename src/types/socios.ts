@@ -5,7 +5,7 @@ export interface Recibo {
   fecha: string;
   tipo: 'CUOTA' | 'ALQUILER';
   cuotas?: {
-    mes: number;
+    mes: string;
     anio: number;
   }[];
 }

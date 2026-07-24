@@ -1,5 +1,5 @@
 import api from './api';
-import { Disciplina, InscripcionMayor, InscripcionMenor } from '../types/disciplinas';
+import { Disciplina, InscripcionMayor, InscripcionMenor, InscripcionResultado } from '../types/disciplinas';
 
 export const disciplinasService = {
   async obtenerDisciplinas(): Promise<Disciplina[]> {
@@ -7,12 +7,12 @@ export const disciplinasService = {
     return response.data;
   },
 
-  async inscribirMayor(data: InscripcionMayor): Promise<any> {
+  async inscribirMayor(data: InscripcionMayor): Promise<InscripcionResultado> {
     const response = await api.post('/inscripcion/solicitar', data);
     return response.data;
   },
 
-  async inscribirMenor(data: InscripcionMenor): Promise<any> {
+  async inscribirMenor(data: InscripcionMenor): Promise<InscripcionResultado> {
     const response = await api.post('/inscripcion/tutor', data);
     return response.data;
   },

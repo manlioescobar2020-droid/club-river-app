@@ -11,9 +11,17 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { Disciplina, InscripcionMenor } from '../../types/disciplinas';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Disciplina, InscripcionMenor, InscripcionResultado } from '../../types/disciplinas';
 import { disciplinasService } from '../../services/disciplinasService';
 import { colors, radius, typography } from '../../theme';
+
+function avisoCuota(resultado: InscripcionResultado | null): string | null {
+  if (!resultado) return null;
+  if (resultado.cuotaGenerada) return 'Se generó tu primera cuota de este mes.';
+  if (resultado.periodoPrueba) return 'Estás en período de prueba: tu primera cuota se genera el mes que viene.';
+  return null;
+}
 
 function parseFecha(valor: string): Date | null {
   const parts = valor.split('/');
@@ -56,6 +64,8 @@ export default function FormularioMenorScreen({ route, navigation }: any) {
   const [telefonoTutor, setTelefonoTutor] = useState('');
 
   const [loading, setLoading] = useState(false);
+  const [enviado, setEnviado] = useState(false);
+  const [resultado, setResultado] = useState<InscripcionResultado | null>(null);
 
   const handleEnviar = async () => {
     if (!nombreMenor.trim() || !apellidoMenor.trim()) {
@@ -107,18 +117,40 @@ export default function FormularioMenorScreen({ route, navigation }: any) {
 
     setLoading(true);
     try {
-      await disciplinasService.inscribirMenor(payload);
-      Alert.alert(
-        '¡Inscripción enviada!',
-        `La solicitud de inscripción a ${disciplina.nombre} fue enviada correctamente. Nos contactaremos con el tutor a la brevedad.`,
-        [{ text: 'Aceptar', onPress: () => navigation.navigate('DisciplinasHome') }]
-      );
+      const data = await disciplinasService.inscribirMenor(payload);
+      setResultado(data);
+      setEnviado(true);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'No se pudo enviar la inscripción');
     } finally {
       setLoading(false);
     }
   };
+
+  if (enviado) {
+    const aviso = avisoCuota(resultado);
+    return (
+      <View style={styles.successContainer}>
+        <Ionicons name="checkmark-circle" size={72} color={colors.green} />
+        <Text style={styles.successTitle}>¡Inscripción enviada!</Text>
+        <Text style={styles.successBody}>
+          La solicitud de inscripción a {disciplina.nombre} fue enviada correctamente. Nos contactaremos con el tutor a la brevedad.
+        </Text>
+        {aviso && (
+          <View style={styles.avisoBox}>
+            <Text style={styles.avisoText}>{aviso}</Text>
+          </View>
+        )}
+        <TouchableOpacity
+          style={styles.volverBtn}
+          onPress={() => navigation.navigate('DisciplinasHome')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.volverBtnText}>Volver</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   type FieldDef = {
     label: string;
@@ -244,4 +276,48 @@ const styles = StyleSheet.create({
   },
   enviarBtnDisabled: { opacity: 0.6 },
   enviarBtnText: { ...typography.bodyBold, color: colors.text, fontSize: 16 },
+
+  successContainer: {
+    flex: 1,
+    backgroundColor: colors.bg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    gap: 16,
+  },
+  successTitle: {
+    ...typography.bodyBold,
+    fontSize: 26,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  successBody: {
+    ...typography.body,
+    fontSize: 15,
+    color: colors.muted,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  avisoBox: {
+    borderRadius: radius.md,
+    padding: 14,
+    backgroundColor: colors.redDim,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.red,
+  },
+  avisoText: {
+    ...typography.bodyMedium,
+    fontSize: 14,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  volverBtn: {
+    marginTop: 8,
+    backgroundColor: colors.red,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    alignItems: 'center',
+  },
+  volverBtnText: { ...typography.bodyBold, color: colors.text, fontSize: 16 },
 });

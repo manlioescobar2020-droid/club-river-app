@@ -15,6 +15,14 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, typography } from '../../theme';
 import api from '../../services/api';
+import { InscripcionResultado } from '../../types/disciplinas';
+
+function avisoCuota(resultado: InscripcionResultado | null): string | null {
+  if (!resultado) return null;
+  if (resultado.cuotaGenerada) return 'Se generó tu cuota societaria de este mes.';
+  if (resultado.periodoPrueba) return 'Estás en período de prueba: tu primera cuota se genera el mes que viene.';
+  return null;
+}
 
 function validarEmail(email: string): boolean {
   return /\S+@\S+\.\S+/.test(email);
@@ -37,6 +45,7 @@ export default function AsociarseScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [enviado, setEnviado] = useState(false);
+  const [resultado, setResultado] = useState<InscripcionResultado | null>(null);
 
   const handleEnviar = async () => {
     setError(null);
@@ -60,7 +69,7 @@ export default function AsociarseScreen() {
 
     setLoading(true);
     try {
-      await api.post('/inscripcion/solicitar', {
+      const response = await api.post('/inscripcion/solicitar', {
         nombre: nombre.trim(),
         apellido: apellido.trim(),
         dni: dni.replace(/\./g, '').trim(),
@@ -68,6 +77,7 @@ export default function AsociarseScreen() {
         aceptaTerminos: true,
         ...(telefono.trim() ? { telefono: telefono.trim() } : {}),
       });
+      setResultado(response.data ?? null);
       setEnviado(true);
     } catch (e: any) {
       const status = e.status;
@@ -100,6 +110,11 @@ export default function AsociarseScreen() {
         <Text style={styles.successBody}>
           Tu solicitud fue recibida. El club revisará tus datos y recibirás un email con tus credenciales de acceso cuando sea aprobada.
         </Text>
+        {avisoCuota(resultado) && (
+          <View style={styles.avisoBox}>
+            <Text style={styles.avisoText}>{avisoCuota(resultado)}</Text>
+          </View>
+        )}
         <TouchableOpacity
           style={styles.volverBtn}
           onPress={() => navigation.navigate('InicioPublico')}
@@ -326,6 +341,19 @@ const styles = StyleSheet.create({
     color: colors.muted,
     textAlign: 'center',
     lineHeight: 24,
+  },
+  avisoBox: {
+    borderRadius: radius.md,
+    padding: 14,
+    backgroundColor: colors.redDim,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.red,
+  },
+  avisoText: {
+    ...typography.bodyMedium,
+    fontSize: 14,
+    color: colors.text,
+    textAlign: 'center',
   },
   volverBtn: {
     marginTop: 8,

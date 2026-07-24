@@ -27,3 +27,8 @@ export interface InscripcionMenor {
   tutorEmail: string;
   tutorTelefono?: string;
 }
+
+export interface InscripcionResultado {
+  cuotaGenerada?: boolean;
+  periodoPrueba?: boolean;
+}

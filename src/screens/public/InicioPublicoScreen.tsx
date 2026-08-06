@@ -114,7 +114,7 @@ export default function InicioPublicoScreen() {
         onPress={() => navigation.navigate('Login')}
         activeOpacity={0.8}
       >
-        <Text style={styles.loginBtnText}>Ya soy socio — Iniciar sesión</Text>
+        <Text style={styles.loginBtnText}>Ya tengo cuenta — Iniciar sesión</Text>
       </TouchableOpacity>
     </ScrollView>
   );

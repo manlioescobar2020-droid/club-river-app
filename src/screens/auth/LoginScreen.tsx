@@ -59,7 +59,16 @@ export default function LoginScreen() {
       await signIn(response.user, response.token);
       // AppNavigator switches to PrivateNavigator automatically on auth state change
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Error al iniciar sesión');
+      if (error.status === 403 && error.data?.webUrl) {
+        Alert.alert(
+          'Acceso no disponible',
+          `Hola ${error.data.nombre}, tu información está disponible en la web: ${error.data.webUrl}`
+        );
+      } else if (error.status === 401) {
+        Alert.alert('Error', 'Credenciales inválidas');
+      } else {
+        Alert.alert('Error', error.message || 'Error al iniciar sesión');
+      }
     } finally {
       setLoading(false);
     }

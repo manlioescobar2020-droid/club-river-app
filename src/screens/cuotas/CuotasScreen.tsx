@@ -71,8 +71,7 @@ export default function CuotasScreen() {
   useEffect(() => {
     const subscription = Linking.addEventListener('url', ({ url }) => {
       if (!url.startsWith('clubriver://cuotas')) return;
-      const { queryParams } = Linking.parse(url);
-      const status = queryParams?.status;
+      const status = new URL(url).searchParams.get('status');
       if (status === 'failure') {
         Alert.alert('Pago no completado', 'El pago no pudo procesarse. Podés intentarlo nuevamente.');
         return;

@@ -7,7 +7,6 @@ import { ChatProvider, useChatContext } from './src/context/ChatContext';
 import AppNavigator, { navigationRef } from './src/navigation/AppNavigator';
 import ChatButton from './src/components/chat/ChatButton';
 import ChatModal from './src/components/chat/ChatModal';
-import WhatsAppMenuButton from './src/components/whatsapp/WhatsAppMenuButton';
 import { useFonts } from 'expo-font';
 import {
   DMSans_400Regular,
@@ -64,7 +63,6 @@ function AppContent() {
           <DeepLinkHandler />
           <ChatButton />
           <ChatModal />
-          <WhatsAppMenuButton />
         </AuthProvider>
       </AlquilerProvider>
     </ChatProvider>

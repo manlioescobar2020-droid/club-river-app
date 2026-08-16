@@ -12,7 +12,7 @@ interface InfoItem {
 const INFO_ITEMS: InfoItem[] = [
   { icon: 'location-outline',   label: 'Dirección',            value: 'Santo Tomé, Corrientes' },
   { icon: 'time-outline',       label: 'Horarios de Atención', value: 'Lunes a Viernes: 8:00 – 20:00\nSábados: 9:00 – 14:00' },
-  { icon: 'call-outline',       label: 'Teléfono',             value: '+54 9 3756 000000' },
+  { icon: 'call-outline',       label: 'Teléfono',             value: '+54 9 3756 41-5586' },
   { icon: 'mail-outline',       label: 'Email',                value: 'contacto@clubriversantotome.com.ar' },
 ];
 

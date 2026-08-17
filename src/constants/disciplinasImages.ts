@@ -23,5 +23,6 @@ export function getDisciplinaImage(nombre: string): ImageSourcePropType {
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .trim();
-  return DISCIPLINAS_IMAGES[key] ?? DISCIPLINAS_IMAGES.default;
+  const primeraPalabra = key.split(' ')[0];
+  return DISCIPLINAS_IMAGES[key] ?? DISCIPLINAS_IMAGES[primeraPalabra] ?? DISCIPLINAS_IMAGES.default;
 }

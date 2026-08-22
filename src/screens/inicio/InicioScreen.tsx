@@ -349,7 +349,7 @@ export default function InicioScreen() {
                   activeOpacity={0.75}
                 >
                   <Image
-                    source={getDisciplinaImage(d.nombre)}
+                    source={d.imagenUrl ? { uri: d.imagenUrl } : getDisciplinaImage(d.nombre)}
                     style={{ width: 80, height: 80, borderRadius: 12 }}
                     resizeMode="cover"
                   />

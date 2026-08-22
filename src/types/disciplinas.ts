@@ -4,6 +4,7 @@ export interface Disciplina {
   descripcion: string;
   cuotaMensual: number;
   activa: boolean;
+  imagenUrl?: string | null;
 }
 
 export interface InscripcionMayor {

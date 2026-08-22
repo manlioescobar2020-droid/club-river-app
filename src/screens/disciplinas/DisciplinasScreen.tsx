@@ -19,10 +19,11 @@ import { getDisciplinaImage } from '../../constants/disciplinasImages';
 
 // ─── Card ─────────────────────────────────────────────────────────────────
 function DisciplinaCard({ item, onPress }: { item: Disciplina; onPress: () => void }) {
+  const imageSource = item.imagenUrl ? { uri: item.imagenUrl } : getDisciplinaImage(item.nombre);
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
       <Image
-        source={getDisciplinaImage(item.nombre)}
+        source={imageSource}
         style={styles.cardImage}
         resizeMode="cover"
       />

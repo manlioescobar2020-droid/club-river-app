@@ -132,29 +132,37 @@ export default function PerfilScreen() {
         </View>
       </View>
 
-      {/* Mi Cuenta — solo SOCIO */}
-      {esSocio && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>MI CUENTA</Text>
-          <View style={styles.sectionCard}>
-            <InfoRow
-              icon="calendar-outline"
-              label="Mis Alquileres"
-              onPress={() => navigation.navigate('AlquileresHistorial')}
-            />
-            {user.esTutor && (
-              <>
-                <View style={styles.rowDivider} />
-                <InfoRow
-                  icon="people-outline"
-                  label="Participantes a cargo"
-                  onPress={() => navigation.navigate('ParticipantesACargo')}
-                />
-              </>
-            )}
-          </View>
+      {/* Mi Cuenta — SOCIO y PARTICIPANTE */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>MI CUENTA</Text>
+        <View style={styles.sectionCard}>
+          <InfoRow
+            icon="qr-code-outline"
+            label="Mi Carnet"
+            onPress={() => navigation.navigate('MiCarnet')}
+          />
+          {esSocio && (
+            <>
+              <View style={styles.rowDivider} />
+              <InfoRow
+                icon="calendar-outline"
+                label="Mis Alquileres"
+                onPress={() => navigation.navigate('AlquileresHistorial')}
+              />
+              {user.esTutor && (
+                <>
+                  <View style={styles.rowDivider} />
+                  <InfoRow
+                    icon="people-outline"
+                    label="Participantes a cargo"
+                    onPress={() => navigation.navigate('ParticipantesACargo')}
+                  />
+                </>
+              )}
+            </>
+          )}
         </View>
-      )}
+      </View>
 
       {/* Configuración */}
       <View style={styles.section}>

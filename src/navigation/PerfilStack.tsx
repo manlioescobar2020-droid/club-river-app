@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PerfilScreen from '../screens/perfil/PerfilScreen';
+import MiCarnetScreen from '../screens/perfil/MiCarnetScreen';
 import CambiarContrasenaScreen from '../screens/perfil/CambiarContrasenaScreen';
 import AlquileresHistorialScreen from '../screens/socios/AlquileresHistorialScreen';
 import ParticipantesACargoScreen from '../screens/socios/ParticipantesACargoScreen';
@@ -18,6 +19,11 @@ export default function PerfilStackNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="PerfilMain" component={PerfilScreen} />
+      <Stack.Screen
+        name="MiCarnet"
+        component={MiCarnetScreen}
+        options={{ headerShown: true, title: 'Mi Carnet', ...HEADER_OPTIONS }}
+      />
       <Stack.Screen
         name="CambiarContrasena"
         component={CambiarContrasenaScreen}

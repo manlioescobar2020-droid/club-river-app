@@ -7,12 +7,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Alert,
   ListRenderItem,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
 import { sociosService } from '../../services/sociosService';
-import { AlquilerHistorial } from '../../types/socios';
+import { AlquilerHistorial, MovimientoSaldo } from '../../types/socios';
 import { colors, radius, typography } from '../../theme';
 
 const DIAS  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
@@ -21,6 +22,11 @@ const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov'
 function formatFechaLarga(dateStr: string): string {
   const d = new Date(dateStr);
   return `${DIAS[d.getUTCDay()]} ${d.getUTCDate()} ${MESES[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+
+function formatFechaCorta(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${d.getUTCDate().toString().padStart(2, '0')}/${(d.getUTCMonth() + 1).toString().padStart(2, '0')}`;
 }
 
 function calcularDuracion(inicio: string, fin: string): string {
@@ -48,6 +54,10 @@ const ESTADO_CONFIG: Record<string, { bg: string; color: string; label: string }
 
 export default function AlquileresHistorialScreen() {
   const [alquileres, setAlquileres] = useState<AlquilerHistorial[]>([]);
+  const [saldo, setSaldo] = useState(0);
+  const [movimientos, setMovimientos] = useState<MovimientoSaldo[]>([]);
+  const [mostrarMovimientos, setMostrarMovimientos] = useState(false);
+  const [cancelandoId, setCancelandoId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,8 +67,13 @@ export default function AlquileresHistorialScreen() {
     else setLoading(true);
     setError(null);
     try {
-      const data = await sociosService.obtenerHistorialAlquileres();
-      setAlquileres(data);
+      const [alquileresData, saldoData] = await Promise.all([
+        sociosService.obtenerHistorialAlquileres(),
+        sociosService.obtenerSaldo().catch(() => ({ saldo: 0, movimientos: [] })),
+      ]);
+      setAlquileres(alquileresData);
+      setSaldo(saldoData.saldo);
+      setMovimientos(saldoData.movimientos);
     } catch {
       setError('No se pudieron cargar los alquileres. Intentá de nuevo.');
     } finally {
@@ -68,6 +83,30 @@ export default function AlquileresHistorialScreen() {
   }, []);
 
   useFocusEffect(useCallback(() => { cargar(); }, [cargar]));
+
+  function ejecutarCancelacion(id: string) {
+    setCancelandoId(id);
+    sociosService.cancelarAlquiler(id)
+      .then(response => {
+        Alert.alert('', response.mensaje);
+        cargar();
+      })
+      .catch((err: any) => {
+        Alert.alert('Error', err.message || 'No se pudo cancelar la reserva.');
+      })
+      .finally(() => setCancelandoId(null));
+  }
+
+  function handleCancelar(item: AlquilerHistorial) {
+    const mensaje = item.devolucion?.aplicaDevolucion
+      ? `Si cancelás ahora recuperás $${item.devolucion.montoDevuelto.toLocaleString('es-AR')} como saldo a favor (${item.devolucion.porcentaje}% del total). ¿Confirmás?`
+      : 'Podés cancelar, pero no corresponde saldo a favor por el plazo o porque no está pagada. Se libera la fecha. ¿Confirmás?';
+
+    Alert.alert('Cancelar reserva', mensaje, [
+      { text: 'No', style: 'cancel' },
+      { text: 'Sí, cancelar', style: 'destructive', onPress: () => ejecutarCancelacion(item.id) },
+    ]);
+  }
 
   const renderItem: ListRenderItem<AlquilerHistorial> = ({ item }) => {
     const estado = ESTADO_CONFIG[item.estado] ?? ESTADO_CONFIG.RESERVADO;
@@ -99,6 +138,20 @@ export default function AlquileresHistorialScreen() {
         </View>
 
         <Text style={styles.monto}>{formatMonto(item.monto)}</Text>
+
+        {item.estado !== 'CANCELADO' && (
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => handleCancelar(item)}
+            disabled={cancelandoId === item.id}
+          >
+            {cancelandoId === item.id ? (
+              <ActivityIndicator size="small" color={colors.red} />
+            ) : (
+              <Text style={styles.cancelButtonText}>Cancelar reserva</Text>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
@@ -119,12 +172,46 @@ export default function AlquileresHistorialScreen() {
     );
   }
 
+  const renderSaldoHeader = () => {
+    if (saldo <= 0) return null;
+    return (
+      <View style={styles.saldoCard}>
+        <View style={styles.saldoHeader}>
+          <Ionicons name="wallet-outline" size={22} color={colors.green} />
+          <Text style={styles.saldoTitle}>Saldo a favor</Text>
+        </View>
+        <Text style={styles.saldoMonto}>${saldo.toLocaleString('es-AR')}</Text>
+        <TouchableOpacity onPress={() => setMostrarMovimientos(p => !p)}>
+          <Text style={styles.verMovimientosText}>
+            {mostrarMovimientos ? 'Ocultar movimientos' : 'Ver movimientos'}
+          </Text>
+        </TouchableOpacity>
+        {mostrarMovimientos && (
+          <View style={styles.movimientosList}>
+            {movimientos.map((m, i) => (
+              <View key={i} style={styles.movimientoRow}>
+                <View style={styles.movimientoInfo}>
+                  <Text style={styles.movimientoFecha}>{formatFechaCorta(m.creadoEn)}</Text>
+                  <Text style={styles.movimientoDescripcion}>{m.descripcion}</Text>
+                </View>
+                <Text style={[styles.movimientoMonto, m.monto >= 0 ? styles.movimientoPositivo : styles.movimientoNegativo]}>
+                  {m.monto >= 0 ? '+' : ''}${m.monto.toLocaleString('es-AR')}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
     <FlatList
       style={styles.container}
       data={alquileres}
       keyExtractor={(item) => String(item.id)}
       renderItem={renderItem}
+      ListHeaderComponent={renderSaldoHeader}
       contentContainerStyle={alquileres.length === 0 ? styles.emptyContainer : styles.listContent}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={() => cargar(true)} colors={[colors.red]} tintColor={colors.red} />
@@ -170,4 +257,22 @@ const styles = StyleSheet.create({
   categTextPublico: { color: colors.green },
   categTextPrivado: { color: colors.purple },
   monto: { ...typography.bodyBold, fontSize: 20, color: colors.text },
+  cancelButton: {
+    borderColor: colors.red, borderWidth: 1, borderRadius: radius.sm,
+    paddingVertical: 10, alignItems: 'center', marginTop: 12,
+  },
+  cancelButtonText: { ...typography.bodySemiBold, color: colors.red, fontSize: 14 },
+  saldoCard: { backgroundColor: colors.greenDim, borderRadius: radius.lg, padding: 16 },
+  saldoHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  saldoTitle: { ...typography.bodySemiBold, fontSize: 15, color: colors.green },
+  saldoMonto: { ...typography.bodyBold, fontSize: 28, color: colors.green, marginBottom: 10 },
+  verMovimientosText: { ...typography.bodySemiBold, fontSize: 13, color: colors.green, textDecorationLine: 'underline' },
+  movimientosList: { marginTop: 12, gap: 10 },
+  movimientoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  movimientoInfo: { flex: 1, marginRight: 8 },
+  movimientoFecha: { ...typography.body, fontSize: 11, color: colors.muted },
+  movimientoDescripcion: { ...typography.body, fontSize: 13, color: colors.text },
+  movimientoMonto: { ...typography.bodyBold, fontSize: 14 },
+  movimientoPositivo: { color: colors.green },
+  movimientoNegativo: { color: colors.red },
 });

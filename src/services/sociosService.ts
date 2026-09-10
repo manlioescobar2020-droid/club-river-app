@@ -1,5 +1,5 @@
 import api, { BASE_URL } from './api';
-import { Recibo, AlquilerHistorial, ParticipanteACargo } from '../types/socios';
+import { Recibo, AlquilerHistorial, ParticipanteACargo, SaldoResponse } from '../types/socios';
 
 export const sociosService = {
   async obtenerRecibos(): Promise<Recibo[]> {
@@ -19,6 +19,19 @@ export const sociosService = {
 
   async obtenerParticipantesACargo(): Promise<ParticipanteACargo[]> {
     const response = await api.get('/mi-cuenta/participantes');
+    return response.data;
+  },
+
+  async obtenerSaldo(): Promise<SaldoResponse> {
+    const response = await api.get('/mi-cuenta/saldo');
+    return response.data;
+  },
+
+  async cancelarAlquiler(id: string): Promise<{
+    ok: boolean; cancelado: boolean; montoDevuelto: number;
+    aplicaDevolucion: boolean; porcentaje: number; mensaje: string;
+  }> {
+    const response = await api.post(`/mi-cuenta/alquileres/${id}/cancelar`, {});
     return response.data;
   },
 };

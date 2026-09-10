@@ -14,6 +14,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAlquiler } from '../../context/AlquilerContext';
 import { labelTipoEspacio, labelDeporte } from '../../types/alquileres';
 import { alquileresService } from '../../services/alquileresService';
+import { sociosService } from '../../services/sociosService';
 import ProgressSteps from '../../components/alquileres/ProgressSteps';
 import { colors, radius, typography } from '../../theme';
 
@@ -34,6 +35,7 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
   const [esperandoPago, setEsperandoPago] = useState(false);
   const [alquilerId, setAlquilerId] = useState<string | null>(null);
+  const [saldo, setSaldo] = useState(0);
 
   // Refs para evitar leaks y stale closures en el polling
   const esperandoRef  = useRef(false);
@@ -47,7 +49,14 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
     };
   }, []);
 
-  const precioTotal = calcularPrecioTotal();
+  useEffect(() => {
+    sociosService.obtenerSaldo()
+      .then(data => setSaldo(data.saldo))
+      .catch(() => setSaldo(0));
+  }, []);
+
+  const precioTotal  = calcularPrecioTotal();
+  const montoAPagar  = Math.max(0, precioTotal - saldo);
 
   const horasDuracion = (() => {
     if (!state.horaInicio || !state.horaFin) return 0;
@@ -105,19 +114,6 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
     }, 300_000);
   };
 
-  const generarArrayHoras = (inicio: string, fin: string): string[] => {
-    const horas: string[] = [];
-    const horaInicioNum = parseInt(inicio.split(':')[0]);
-    const horaFinNum    = parseInt(fin.split(':')[0]);
-    if (horaFinNum <= horaInicioNum) {
-      for (let i = horaInicioNum; i <= 23; i++) horas.push(`${i.toString().padStart(2, '0')}:00`);
-      for (let i = 0; i < horaFinNum; i++)      horas.push(`${i.toString().padStart(2, '0')}:00`);
-    } else {
-      for (let i = horaInicioNum; i < horaFinNum; i++) horas.push(`${i.toString().padStart(2, '0')}:00`);
-    }
-    return horas;
-  };
-
   const handlePagar = async () => {
     console.log('[PAGAR] ========== BTN CLICKED ==========');
     if (esperandoPago || loading) return;
@@ -129,30 +125,40 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
 
     setLoading(true);
     try {
-      const horasArray = generarArrayHoras(state.horaInicio!, state.horaFin!);
-      console.log('[PAGAR DEBUG] horasArray generado:', horasArray);
+      const fechaLocal      = state.fecha!;
+      const fechaStr        = `${fechaLocal.getFullYear()}-${String(fechaLocal.getMonth() + 1).padStart(2, '0')}-${String(fechaLocal.getDate()).padStart(2, '0')}`;
+      const cruzaMedianoche = parseInt(state.horaFin!) <= parseInt(state.horaInicio!);
+      const horaInicioISO   = `${fechaStr}T${state.horaInicio}:00.000Z`;
+      const finFechaStr     = cruzaMedianoche
+        ? new Date(new Date(`${fechaStr}T00:00:00.000Z`).getTime() + 86400000).toISOString().slice(0, 10)
+        : fechaStr;
+      const horaFinISO = `${finFechaStr}T${state.horaFin}:00.000Z`;
 
       const payload = {
         tipoEspacio:      state.tipoEspacio!,
-        ...(state.deporte ? { deporte: state.deporte } : {}),
+        ...(state.deporte ? { deporteCancha: state.deporte } : {}),
         categoriaEvento:  state.categoriaEvento!,
-        fecha:            state.fecha!.toISOString(),
-        horaInicio:       state.horaInicio!,
-        horaFin:          state.horaFin!,
-        nombreCliente:    nombre.trim(),
-        telefonoCliente:  telefono.trim(),
-        emailCliente:     email.trim(),
+        fecha:            fechaStr,
+        horaInicio:       horaInicioISO,
+        horaFin:          horaFinISO,
+        clienteNombre:    nombre.trim(),
+        clienteTelefono:  telefono.trim(),
+        clienteEmail:     email.trim(),
       };
       console.log('[PAGAR DEBUG] Payload completo:', JSON.stringify(payload));
 
       const response = await alquileresService.crearReserva(payload);
       console.log('[PAGAR DEBUG] Response completa:', JSON.stringify(response));
 
-      if (response.init_point && response.alquilerId) {
+      if (response.pagadoConSaldo || response.montoAPagar === 0) {
+        Alert.alert('¡Reserva confirmada!', 'La cubriste con tu saldo a favor.', [
+          { text: 'Volver al inicio', onPress: () => { resetWizard(); navigation.navigate('AlquileresHome'); } },
+        ]);
+      } else if (response.initPoint && response.alquilerId) {
         setAlquilerId(response.alquilerId);
-        const canOpen = await Linking.canOpenURL(response.init_point);
+        const canOpen = await Linking.canOpenURL(response.initPoint);
         if (canOpen) {
-          await Linking.openURL(response.init_point);
+          await Linking.openURL(response.initPoint);
           setEsperandoPago(true);
           iniciarPollingPago(response.alquilerId);
         } else {
@@ -229,6 +235,23 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
               ${precioTotal.toLocaleString('es-AR')}
             </Text>
           </View>
+
+          {saldo > 0 && (
+            <>
+              <View style={styles.resumenRow}>
+                <Text style={styles.resumenLabel}>Tu saldo a favor</Text>
+                <Text style={styles.resumenSaldoValue}>
+                  -${Math.min(saldo, precioTotal).toLocaleString('es-AR')}
+                </Text>
+              </View>
+              <View style={styles.resumenRow}>
+                <Text style={styles.resumenLabel}>A pagar</Text>
+                <Text style={styles.resumenPrecioTotal}>
+                  ${montoAPagar.toLocaleString('es-AR')}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Formulario */}
@@ -304,7 +327,9 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
             <>
               <Ionicons name="card-outline" size={20} color={colors.text} style={{ marginRight: 8 }} />
               <Text style={styles.payButtonText}>
-                Pagar ${precioTotal.toLocaleString('es-AR')}
+                {montoAPagar <= 0
+                  ? 'Confirmar reserva (la cubrís con tu saldo)'
+                  : `Pagar $${montoAPagar.toLocaleString('es-AR')}`}
               </Text>
             </>
           )}
@@ -328,6 +353,7 @@ const styles = StyleSheet.create({
   resumenValue: { ...typography.bodyMedium, fontSize: 14, color: colors.text, textTransform: 'capitalize' },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: 10 },
   resumenPrecioTotal: { ...typography.bodyBold, fontSize: 22, color: colors.red },
+  resumenSaldoValue: { ...typography.bodyBold, fontSize: 16, color: colors.green },
 
   formCard: { backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.glassBorder, padding: 16, marginBottom: 16 },
   formTitle: { ...typography.bodySemiBold, fontSize: 16, color: colors.text, marginBottom: 16 },

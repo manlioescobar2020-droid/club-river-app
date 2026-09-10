@@ -10,8 +10,17 @@ export interface Recibo {
   }[];
 }
 
+export interface DevolucionInfo {
+  aplicaDevolucion: boolean;
+  porcentaje: number;
+  montoDevuelto: number;
+  diasAnticipacion: number;
+  motivo: string;
+}
+
 export interface AlquilerHistorial {
-  id: number;
+  id: string;
+  tipo: 'SALON' | 'CANCHA';
   fecha: string;
   horaInicio: string;
   horaFin: string;
@@ -19,6 +28,7 @@ export interface AlquilerHistorial {
   categoriaEvento: 'PUBLICO' | 'PRIVADO';
   monto: string;
   estado: 'RESERVADO' | 'PAGADO' | 'CANCELADO';
+  devolucion?: DevolucionInfo;
 }
 
 export interface ParticipanteACargo {
@@ -35,4 +45,16 @@ export interface ParticipanteACargo {
       };
     };
   }[];
+}
+
+export interface MovimientoSaldo {
+  monto: number;
+  tipo: 'CANCELACION_ALQUILER' | 'USO_EN_ALQUILER' | 'AJUSTE_MANUAL';
+  descripcion: string;
+  creadoEn: string;
+}
+
+export interface SaldoResponse {
+  saldo: number;
+  movimientos: MovimientoSaldo[];
 }

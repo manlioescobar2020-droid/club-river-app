@@ -26,10 +26,18 @@ export const alquileresService = {
     }
   },
 
-  async crearReserva(data: ReservaData): Promise<{ init_point: string; alquilerId: string }> {
+  async crearReserva(data: ReservaData): Promise<{
+    alquilerId: string;
+    pagadoConSaldo?: boolean;
+    initPoint?: string;
+    monto?: number;
+    montoTotal?: number;
+    saldoAplicado?: number;
+    montoAPagar?: number;
+  }> {
     try {
       console.log('[ALQUILERES] Creando reserva:', data);
-      const response = await api.post('/alquileres/reservar', data);
+      const response = await api.post('/public/alquileres', data);
       console.log('[SERVICE DEBUG] crearReserva response.data:', JSON.stringify(response.data));
       console.log('[SERVICE DEBUG] Claves en response.data:', Object.keys(response.data || {}));
       return response.data;

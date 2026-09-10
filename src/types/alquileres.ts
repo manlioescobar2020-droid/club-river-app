@@ -45,12 +45,12 @@ export interface HorarioDisponible {
 
 export interface ReservaData {
   tipoEspacio: TipoEspacio;
-  deporte?: DeporteMultiusos;
+  deporteCancha?: DeporteMultiusos;
   categoriaEvento: CategoriaEvento;
-  fecha: string; // ISO string
-  horaInicio: string;
-  horaFin: string;
-  nombreCliente: string;
-  telefonoCliente: string;
-  emailCliente: string;
+  fecha: string; // "YYYY-MM-DD"
+  horaInicio: string; // ISO string
+  horaFin: string; // ISO string
+  clienteNombre: string;
+  clienteTelefono: string;
+  clienteEmail: string;
 }

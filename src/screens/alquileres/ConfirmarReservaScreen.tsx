@@ -153,10 +153,8 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
         clienteTelefono:  telefono.trim(),
         clienteEmail:     email.trim(),
       };
-      console.log('[PAGAR DEBUG] Payload completo:', JSON.stringify(payload));
 
       const response = await alquileresService.crearReserva(payload);
-      console.log('[PAGAR DEBUG] Response completa:', JSON.stringify(response));
 
       if (response.pagadoConSaldo || response.montoAPagar === 0) {
         Alert.alert('¡Reserva confirmada!', 'La cubriste con tu saldo a favor.', [

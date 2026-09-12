@@ -5,7 +5,6 @@ export const alquileresService = {
   async getPrecios(): Promise<PrecioAlquiler[]> {
     try {
       const response = await api.get('/alquileres/precios');
-      console.log('[SERVICE DEBUG] getPrecios response.data:', JSON.stringify(response.data));
       return response.data;
     } catch (error) {
       console.error('[ALQUILERES] Error obteniendo precios:', error);
@@ -36,10 +35,7 @@ export const alquileresService = {
     montoAPagar?: number;
   }> {
     try {
-      console.log('[ALQUILERES] Creando reserva:', data);
       const response = await api.post('/public/alquileres', data);
-      console.log('[SERVICE DEBUG] crearReserva response.data:', JSON.stringify(response.data));
-      console.log('[SERVICE DEBUG] Claves en response.data:', Object.keys(response.data || {}));
       return response.data;
     } catch (error) {
       console.error('[ALQUILERES] Error creando reserva:', error);

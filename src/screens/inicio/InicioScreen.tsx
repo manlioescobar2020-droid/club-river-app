@@ -83,6 +83,7 @@ export default function InicioScreen() {
   const { user }   = useAuth();
   const navigation = useNavigation<any>();
   const insets     = useSafeAreaInsets();
+  const esSocio    = user?.rol === 'SOCIO';
 
   const [cuota, setCuota]               = useState<Cuota | null>(null);
   const [cuotaError, setCuotaError]     = useState(false);
@@ -103,6 +104,7 @@ export default function InicioScreen() {
   const gridAnim = useSectionAnim(100);
   const discAnim = useSectionAnim(200);
   const alqAnim  = useSectionAnim(300);
+  const misAlqAnim = useSectionAnim(350);
   const suscAnim = useSectionAnim(400);
 
   const cargarCuotas = useCallback(async () => {
@@ -386,6 +388,26 @@ export default function InicioScreen() {
             <Ionicons name="chevron-forward-outline" size={20} color={colors.muted} />
           </TouchableOpacity>
         </Animated.View>
+
+        {/* ── Sección 4b: Mis Alquileres (saldo a favor) — solo socios ── */}
+        {esSocio && (
+          <Animated.View style={[styles.section, misAlqAnim]}>
+            <TouchableOpacity
+              style={styles.alqCard}
+              onPress={() => navigation.navigate('Perfil', { screen: 'AlquileresHistorial' })}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.quickIcon, styles.quickIconDefault, { width: 56, height: 56, borderRadius: 10 }]}>
+                <Ionicons name="wallet-outline" size={24} color={colors.text} />
+              </View>
+              <View style={styles.alqText}>
+                <Text style={styles.alqTitle}>Mis Alquileres</Text>
+                <Text style={styles.alqSub}>Historial, saldo a favor y cancelaciones</Text>
+              </View>
+              <Ionicons name="chevron-forward-outline" size={20} color={colors.muted} />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
 
         {/* ── Sección 5: Pago automático ─────────────────── */}
         {user && (

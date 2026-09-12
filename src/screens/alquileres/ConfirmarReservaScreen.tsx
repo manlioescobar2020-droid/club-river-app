@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAlquiler } from '../../context/AlquilerContext';
+import { useAuth } from '../../context/AuthContext';
 import { labelTipoEspacio, labelDeporte } from '../../types/alquileres';
 import { alquileresService } from '../../services/alquileresService';
 import { sociosService } from '../../services/sociosService';
@@ -27,6 +28,7 @@ const STEPS = [
 
 export default function ConfirmarReservaScreen({ navigation }: any) {
   const { state, calcularPrecioTotal, resetWizard } = useAlquiler();
+  const { user } = useAuth();
 
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -54,6 +56,12 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
       .then(data => setSaldo(data.saldo))
       .catch(() => setSaldo(0));
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    setNombre(prev => prev || `${user.nombre} ${user.apellido}`.trim());
+    setEmail(prev => prev || user.email);
+  }, [user]);
 
   const precioTotal  = calcularPrecioTotal();
   const montoAPagar  = Math.max(0, precioTotal - saldo);

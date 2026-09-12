@@ -29,6 +29,17 @@ function formatFechaCorta(dateStr: string): string {
   return `${d.getUTCDate().toString().padStart(2, '0')}/${(d.getUTCMonth() + 1).toString().padStart(2, '0')}`;
 }
 
+// Acepta "HH:MM" o ISO "YYYY-MM-DDTHH:MM:...Z" y devuelve siempre "HH:MM".
+// La hora que aparece en el string (antes de la Z) es la hora literal a mostrar,
+// no se aplica ningún corrimiento de huso horario.
+function extraerHoraMinuto(valor: string): string {
+  const matchISO = valor.match(/T(\d{2}):(\d{2})/);
+  if (matchISO) return `${matchISO[1]}:${matchISO[2]}`;
+  const matchSimple = valor.match(/^(\d{2}):(\d{2})/);
+  if (matchSimple) return `${matchSimple[1]}:${matchSimple[2]}`;
+  return valor;
+}
+
 function calcularDuracion(inicio: string, fin: string): string {
   const [h1, m1] = inicio.split(':').map(Number);
   const [h2, m2] = fin.split(':').map(Number);
@@ -124,7 +135,7 @@ export default function AlquileresHistorialScreen() {
         <View style={styles.horarioRow}>
           <Ionicons name="time-outline" size={14} color={colors.muted} />
           <Text style={styles.horarioText}>
-            {item.horaInicio} - {item.horaFin} · {calcularDuracion(item.horaInicio, item.horaFin)}
+            {extraerHoraMinuto(item.horaInicio)} - {extraerHoraMinuto(item.horaFin)} · {calcularDuracion(extraerHoraMinuto(item.horaInicio), extraerHoraMinuto(item.horaFin))}
           </Text>
         </View>
 

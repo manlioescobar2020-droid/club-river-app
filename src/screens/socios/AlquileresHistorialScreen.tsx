@@ -2,13 +2,13 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  FlatList,
+  SectionList,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   Alert,
-  ListRenderItem,
+  SectionListRenderItem,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -40,6 +40,15 @@ function extraerHoraMinuto(valor: string): string {
   return valor;
 }
 
+// Instante real de fin de la reserva, para comparar contra "ahora". Misma
+// convención que el resto del wizard: la hora que figura en el string (antes
+// de la Z) es la hora literal de Santo Tomé, no se aplica corrimiento de huso.
+function finInstante(item: AlquilerHistorial): Date {
+  const fechaPart = item.fecha.slice(0, 10);
+  const horaFin   = extraerHoraMinuto(item.horaFin);
+  return new Date(`${fechaPart}T${horaFin}:00.000Z`);
+}
+
 function calcularDuracion(inicio: string, fin: string): string {
   const [h1, m1] = inicio.split(':').map(Number);
   const [h2, m2] = fin.split(':').map(Number);
@@ -62,6 +71,12 @@ const ESTADO_CONFIG: Record<string, { bg: string; color: string; label: string }
   RESERVADO: { bg: colors.yellowDim, color: colors.yellow, label: 'Reservado' },
   CANCELADO: { bg: colors.redDim,            color: colors.red,    label: 'Cancelado' },
 };
+
+interface Grupo {
+  title: string;
+  pasada: boolean;
+  data: AlquilerHistorial[];
+}
 
 export default function AlquileresHistorialScreen() {
   const [alquileres, setAlquileres] = useState<AlquilerHistorial[]>([]);
@@ -119,12 +134,13 @@ export default function AlquileresHistorialScreen() {
     ]);
   }
 
-  const renderItem: ListRenderItem<AlquilerHistorial> = ({ item }) => {
+  const renderItem: SectionListRenderItem<AlquilerHistorial, Grupo> = ({ item, section }) => {
     const estado = ESTADO_CONFIG[item.estado] ?? ESTADO_CONFIG.RESERVADO;
     const esPrivado = item.categoriaEvento === 'PRIVADO';
+    const pasada = section.pasada;
 
     return (
-      <View style={styles.card}>
+      <View style={[styles.card, pasada && styles.cardPasada]}>
         <View style={styles.cardHeader}>
           <Text style={styles.fecha}>{formatFechaLarga(item.fecha)}</Text>
           <View style={[styles.estadoBadge, { backgroundColor: estado.bg }]}>
@@ -150,7 +166,7 @@ export default function AlquileresHistorialScreen() {
 
         <Text style={styles.monto}>{formatMonto(item.monto)}</Text>
 
-        {item.estado !== 'CANCELADO' && (
+        {item.estado !== 'CANCELADO' && !pasada && (
           <TouchableOpacity
             style={styles.cancelButton}
             onPress={() => handleCancelar(item)}
@@ -216,14 +232,29 @@ export default function AlquileresHistorialScreen() {
     );
   };
 
+  const ahora = new Date();
+  const proximas   = alquileres.filter(item => finInstante(item) >= ahora)
+    .sort((a, b) => finInstante(a).getTime() - finInstante(b).getTime());
+  const anteriores = alquileres.filter(item => finInstante(item) < ahora)
+    .sort((a, b) => finInstante(b).getTime() - finInstante(a).getTime());
+
+  const sections: Grupo[] = [
+    ...(proximas.length   ? [{ title: 'Próximas',   pasada: false, data: proximas   }] : []),
+    ...(anteriores.length ? [{ title: 'Anteriores', pasada: true,  data: anteriores }] : []),
+  ];
+
   return (
-    <FlatList
+    <SectionList
       style={styles.container}
-      data={alquileres}
+      sections={sections}
       keyExtractor={(item) => String(item.id)}
       renderItem={renderItem}
+      renderSectionHeader={({ section }) => (
+        <Text style={styles.sectionHeader}>{section.title}</Text>
+      )}
       ListHeaderComponent={renderSaldoHeader}
       contentContainerStyle={alquileres.length === 0 ? styles.emptyContainer : styles.listContent}
+      stickySectionHeadersEnabled={false}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={() => cargar(true)} colors={[colors.red]} tintColor={colors.red} />
       }
@@ -249,10 +280,15 @@ const styles = StyleSheet.create({
   errorText: { ...typography.body, fontSize: 15, color: colors.muted, textAlign: 'center', marginTop: 12, marginBottom: 20 },
   retryButton: { borderColor: colors.red, borderWidth: 1, paddingHorizontal: 24, paddingVertical: 10, borderRadius: radius.sm },
   retryButtonText: { ...typography.bodySemiBold, color: colors.red, fontSize: 15 },
+  sectionHeader: {
+    ...typography.bodyBold, fontSize: 13, color: colors.muted,
+    textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2,
+  },
   card: {
     backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1,
     borderColor: colors.glassBorder, padding: 16,
   },
+  cardPasada: { opacity: 0.55 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
   fecha: { ...typography.bodySemiBold, fontSize: 15, color: colors.text, flex: 1, marginRight: 8 },
   estadoBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill },

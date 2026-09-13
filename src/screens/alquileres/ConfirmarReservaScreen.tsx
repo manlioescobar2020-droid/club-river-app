@@ -17,6 +17,7 @@ import { labelTipoEspacio, labelDeporte } from '../../types/alquileres';
 import { alquileresService } from '../../services/alquileresService';
 import { sociosService } from '../../services/sociosService';
 import ProgressSteps from '../../components/alquileres/ProgressSteps';
+import SuccessModal from '../../components/common/SuccessModal';
 import { colors, radius, typography } from '../../theme';
 
 const STEPS = [
@@ -38,6 +39,11 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
   const [esperandoPago, setEsperandoPago] = useState(false);
   const [alquilerId, setAlquilerId] = useState<string | null>(null);
   const [saldo, setSaldo] = useState(0);
+  const [modalExito, setModalExito] = useState<{ visible: boolean; titulo: string; mensaje: string }>({
+    visible: false,
+    titulo: '',
+    mensaje: '',
+  });
 
   // Refs para evitar leaks y stale closures en el polling
   const esperandoRef  = useRef(false);
@@ -94,14 +100,11 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
           if (timeoutRef.current) clearTimeout(timeoutRef.current);
           esperandoRef.current = false;
           setEsperandoPago(false);
-          Alert.alert(
-            '¡Pago exitoso!',
-            'Tu reserva fue confirmada.',
-            [{
-              text: 'Volver al inicio',
-              onPress: () => { resetWizard(); navigation.navigate('AlquileresHome'); },
-            }]
-          );
+          setModalExito({
+            visible: true,
+            titulo: '¡Pago exitoso!',
+            mensaje: 'Tu reserva fue confirmada.',
+          });
         }
       } catch {
         // error puntual — seguir intentando
@@ -157,9 +160,11 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
       const response = await alquileresService.crearReserva(payload);
 
       if (response.pagadoConSaldo || response.montoAPagar === 0) {
-        Alert.alert('¡Reserva confirmada!', 'La cubriste con tu saldo a favor.', [
-          { text: 'Volver al inicio', onPress: () => { resetWizard(); navigation.navigate('AlquileresHome'); } },
-        ]);
+        setModalExito({
+          visible: true,
+          titulo: '¡Reserva confirmada!',
+          mensaje: 'La cubriste con tu saldo a favor.',
+        });
       } else if (response.initPoint && response.alquilerId) {
         setAlquilerId(response.alquilerId);
         const canOpen = await Linking.canOpenURL(response.initPoint);
@@ -341,6 +346,17 @@ export default function ConfirmarReservaScreen({ navigation }: any) {
           )}
         </TouchableOpacity>
       </View>
+
+      <SuccessModal
+        visible={modalExito.visible}
+        titulo={modalExito.titulo}
+        mensaje={modalExito.mensaje}
+        onClose={() => {
+          setModalExito(prev => ({ ...prev, visible: false }));
+          resetWizard();
+          navigation.navigate('AlquileresHome');
+        }}
+      />
     </View>
   );
 }

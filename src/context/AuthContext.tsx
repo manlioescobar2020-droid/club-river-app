@@ -34,13 +34,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Limpiar sesión guardada al iniciar para siempre arrancar sin usuario.
-    // Para restaurar el auto-login, reemplazar este bloque por restoreSession().
-    const clearAndInit = async () => {
-      try { await authService.logout(); } catch {}
-      setIsLoading(false);
+    const restoreSession = async () => {
+      try {
+        const session = await authService.getStoredSession();
+        if (session?.token && session?.user) {
+          setUser(session.user);
+          setIsAuthenticated(true);
+          registerForPushNotificationsAsync()
+            .then(pushToken => {
+              if (pushToken) {
+                sendTokenToBackend(pushToken, session.token).catch(() => {});
+              }
+            })
+            .catch(() => {});
+        }
+      } catch {
+        // Sesión guardada corrupta o error de storage: arrancar deslogueado,
+        // limpiando lo que haya para no reintentar leer basura en cada arranque.
+        try { await authService.logout(); } catch {}
+      } finally {
+        setIsLoading(false);
+      }
     };
-    clearAndInit();
+    restoreSession();
   }, []);
 
   async function signIn(userData: AuthUser, token?: string) {

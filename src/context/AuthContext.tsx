@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Alert, View } from 'react-native';
 import { authService } from '../services/authService';
 import { colors } from '../theme';
-import { registerForPushNotificationsAsync, sendTokenToBackend } from '../services/notificationsService';
+import { registerAndSendPushToken, PushRegistrationResult } from '../services/notificationsService';
 
 interface AuthUser {
   id: number;
@@ -19,6 +19,7 @@ interface AuthContextType {
   user: AuthUser | null;
   signIn: (user: AuthUser, token?: string) => Promise<void>;
   signOut: () => void;
+  pushDiag: PushRegistrationResult | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -26,12 +27,14 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   signIn: async () => {},
   signOut: () => {},
+  pushDiag: null,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [pushDiag, setPushDiag] = useState<PushRegistrationResult | null>(null);
 
   useEffect(() => {
     const restoreSession = async () => {
@@ -40,12 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.token && session?.user) {
           setUser(session.user);
           setIsAuthenticated(true);
-          registerForPushNotificationsAsync()
-            .then(pushToken => {
-              if (pushToken) {
-                sendTokenToBackend(pushToken, session.token).catch(() => {});
-              }
-            })
+          // Re-registra el token en cada arranque con sesión guardada (no solo en login
+          // explícito), porque muchos usuarios nunca vuelven a loguearse manualmente.
+          registerAndSendPushToken(session.token)
+            .then(result => setPushDiag(result))
             .catch(() => {});
         }
       } catch {
@@ -64,13 +65,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthenticated(true);
 
     // Las notificaciones son opcionales — nunca deben bloquear ni crashear el login
-    registerForPushNotificationsAsync()
-      .then(async pushToken => {
-        if (pushToken && token) {
-          sendTokenToBackend(pushToken, token).catch(() => {});
-        }
-      })
-      .catch((error) => console.warn('[PUSH] Error al registrar:', error));
+    if (token) {
+      registerAndSendPushToken(token)
+        .then(result => {
+          setPushDiag(result);
+          // TEMPORAL: diagnóstico push — sacar después de confirmar que el registro
+          // funciona en producción (ver conversación sobre push tokens no registrados).
+          if (result.ok) {
+            Alert.alert('Push OK', 'Token de notificaciones registrado correctamente.');
+          } else {
+            Alert.alert('Push falló', `Paso: ${result.step}\nDetalle: ${result.detail}`);
+          }
+        })
+        .catch((error) => {
+          const detail = error?.message ?? String(error);
+          setPushDiag({ ok: false, step: 'backend-error', detail });
+          // TEMPORAL: diagnóstico push — sacar después
+          Alert.alert('Push falló', `Error inesperado: ${detail}`);
+        });
+    }
   }
 
   function signOut() {
@@ -88,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, signIn, signOut }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, signIn, signOut, pushDiag }}>
       {children}
     </AuthContext.Provider>
   );

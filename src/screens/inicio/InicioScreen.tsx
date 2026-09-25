@@ -20,6 +20,8 @@ import { useAuth } from '../../context/AuthContext';
 import cuotasService, { Cuota } from '../../services/cuotasService';
 import { disciplinasService } from '../../services/disciplinasService';
 import suscripcionService from '../../services/suscripcionService';
+import { porteroService } from '../../services/porteroService';
+import { abrirAgenda } from '../../navigation/navigationRef';
 import { Disciplina } from '../../types/disciplinas';
 import { Suscripcion, SuscripcionPreview } from '../../types/suscripcion';
 import { colors, radius, typography } from '../../theme';
@@ -96,6 +98,8 @@ export default function InicioScreen() {
   const [loadingSusc, setLoadingSusc]         = useState(true);
   const [incluyeDisciplinas, setIncluyeDisc]  = useState(false);
   const [accionSuscCargando, setAccionSusc]   = useState(false);
+
+  const [esEncargadoLlave, setEsEncargadoLlave] = useState(false);
 
   const mountedRef = useRef(true);
   useEffect(() => () => { mountedRef.current = false; }, []);
@@ -212,6 +216,11 @@ export default function InicioScreen() {
       if (user) {
         cargarCuotas();
 
+        // Encargado de llave (flag del backend, cualquier rol): se detecta en silencio.
+        porteroService.getAgenda()
+          .then(() => { if (active) setEsEncargadoLlave(true); })
+          .catch(() => { if (active) setEsEncargadoLlave(false); });
+
         setLoadingSusc(true);
         cargarSuscripcion().finally(() => { if (active) setLoadingSusc(false); });
       } else {
@@ -220,6 +229,7 @@ export default function InicioScreen() {
         setSuscripcion(null);
         setSuscError(null);
         setLoadingSusc(false);
+        setEsEncargadoLlave(false);
       }
 
       return () => { active = false; };
@@ -403,6 +413,26 @@ export default function InicioScreen() {
               <View style={styles.alqText}>
                 <Text style={styles.alqTitle}>Mis Alquileres</Text>
                 <Text style={styles.alqSub}>Historial, saldo a favor y cancelaciones</Text>
+              </View>
+              <Ionicons name="chevron-forward-outline" size={20} color={colors.muted} />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {/* ── Sección 4c: Mi agenda de llaves — solo encargados ── */}
+        {esEncargadoLlave && (
+          <Animated.View style={[styles.section, misAlqAnim]}>
+            <TouchableOpacity
+              style={styles.alqCard}
+              onPress={() => abrirAgenda()}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.quickIcon, styles.quickIconDefault, { width: 56, height: 56, borderRadius: 10 }]}>
+                <Ionicons name="key-outline" size={24} color={colors.text} />
+              </View>
+              <View style={styles.alqText}>
+                <Text style={styles.alqTitle}>Mi agenda de llaves</Text>
+                <Text style={styles.alqSub}>Reservas de los próximos 14 días</Text>
               </View>
               <Ionicons name="chevron-forward-outline" size={20} color={colors.muted} />
             </TouchableOpacity>

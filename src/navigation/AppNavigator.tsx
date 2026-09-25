@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer, DarkTheme, createNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
@@ -18,9 +18,13 @@ import PerfilStackNavigator from './PerfilStack';
 import MisClasesStack from './MisClasesStack';
 import MisCategoriasScreen from '../screens/participantes/MisCategoriasScreen';
 import CuotasScreen from '../screens/cuotas/CuotasScreen';
+import AgendaLlavesScreen from '../screens/portero/AgendaLlavesScreen';
 
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme';
+import { navigationRef, setEsPorteroNavegacion } from './navigationRef';
+
+export { navigationRef };
 
 const NAV_THEME = {
   ...DarkTheme,
@@ -34,10 +38,39 @@ const NAV_THEME = {
   },
 };
 
-export const navigationRef = createNavigationContainerRef();
+const PubStack  = createNativeStackNavigator();
+const PrivStack = createNativeStackNavigator();
+const PrivTab   = createBottomTabNavigator();
 
-const PubStack = createNativeStackNavigator();
-const PrivTab  = createBottomTabNavigator();
+const AGENDA_HEADER_OPTIONS = {
+  headerShown:      true,
+  title:            'Agenda de llaves',
+  headerStyle:      { backgroundColor: colors.red },
+  headerTintColor:  colors.text,
+  headerTitleStyle: { fontWeight: '700' as const },
+};
+
+const TAB_SCREEN_OPTIONS = {
+  tabBarActiveTintColor:   colors.red,
+  tabBarInactiveTintColor: colors.muted,
+  tabBarStyle: {
+    backgroundColor: colors.bg,
+    borderTopWidth:  1,
+    borderTopColor:  colors.border,
+    height:          55,
+    paddingBottom:   8,
+    paddingTop:      8,
+    elevation:       0,
+  },
+  tabBarLabelStyle: {
+    fontSize:        11,
+    fontWeight:      'bold' as const,
+    textTransform:   'uppercase' as const,
+  },
+  tabBarIconStyle:  { display: 'none' as const },
+  tabBarItemStyle:  { flex: 1 },
+  headerShown: false,
+};
 
 function PublicNavigator() {
   return (
@@ -101,7 +134,29 @@ function PublicNavigator() {
   );
 }
 
-function PrivateNavigator() {
+function PorteroTabs() {
+  return (
+    <PrivTab.Navigator screenOptions={TAB_SCREEN_OPTIONS}>
+      <PrivTab.Screen
+        name="Agenda"
+        component={AgendaLlavesScreen}
+        options={{
+          tabBarLabel: 'AGENDA',
+          ...AGENDA_HEADER_OPTIONS,
+        }}
+      />
+      <PrivTab.Screen
+        name="Perfil"
+        component={PerfilStackNavigator}
+        options={{
+          tabBarLabel: 'PERFIL',
+        }}
+      />
+    </PrivTab.Navigator>
+  );
+}
+
+function MainTabs() {
   const { user } = useAuth();
 
   const isParticipante = user?.rol === 'PARTICIPANTE';
@@ -109,29 +164,7 @@ function PrivateNavigator() {
   const tieneCuotas    = ['SOCIO', 'PARTICIPANTE', 'TUTOR_RESPONSABLE'].includes(user?.rol ?? '');
 
   return (
-    <PrivTab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor:   colors.red,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: {
-          backgroundColor: colors.bg,
-          borderTopWidth:  1,
-          borderTopColor:  colors.border,
-          height:          55,
-          paddingBottom:   8,
-          paddingTop:      8,
-          elevation:       0,
-        },
-        tabBarLabelStyle: {
-          fontSize:        11,
-          fontWeight:      'bold',
-          textTransform:   'uppercase',
-        },
-        tabBarIconStyle:  { display: 'none' },
-        tabBarItemStyle:  { flex: 1 },
-        headerShown: false,
-      }}
-    >
+    <PrivTab.Navigator screenOptions={TAB_SCREEN_OPTIONS}>
       <PrivTab.Screen
         name="Inicio"
         component={InicioScreen}
@@ -189,6 +222,27 @@ function PrivateNavigator() {
         }}
       />
     </PrivTab.Navigator>
+  );
+}
+
+// Stack sobre las tabs: permite abrir AgendaLlaves desde cualquier tab
+// (encargados de llave con otro rol). El PORTERO la tiene como tab propia.
+function PrivateNavigator() {
+  const { user } = useAuth();
+  const isPortero = user?.rol === 'PORTERO';
+  setEsPorteroNavegacion(isPortero);
+
+  return (
+    <PrivStack.Navigator screenOptions={{ headerShown: false }}>
+      <PrivStack.Screen name="Tabs" component={isPortero ? PorteroTabs : MainTabs} />
+      {!isPortero && (
+        <PrivStack.Screen
+          name="AgendaLlaves"
+          component={AgendaLlavesScreen}
+          options={AGENDA_HEADER_OPTIONS}
+        />
+      )}
+    </PrivStack.Navigator>
   );
 }
 

@@ -15,6 +15,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { sociosService } from '../../services/sociosService';
 import { AlquilerHistorial, MovimientoSaldo } from '../../types/socios';
 import { colors, radius, typography } from '../../theme';
+import { extraerHoraMinuto, finInstante } from '../../utils/fechas';
 
 const DIAS  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -27,26 +28,6 @@ function formatFechaLarga(dateStr: string): string {
 function formatFechaCorta(dateStr: string): string {
   const d = new Date(dateStr);
   return `${d.getUTCDate().toString().padStart(2, '0')}/${(d.getUTCMonth() + 1).toString().padStart(2, '0')}`;
-}
-
-// Acepta "HH:MM" o ISO "YYYY-MM-DDTHH:MM:...Z" y devuelve siempre "HH:MM".
-// La hora que aparece en el string (antes de la Z) es la hora literal a mostrar,
-// no se aplica ningún corrimiento de huso horario.
-function extraerHoraMinuto(valor: string): string {
-  const matchISO = valor.match(/T(\d{2}):(\d{2})/);
-  if (matchISO) return `${matchISO[1]}:${matchISO[2]}`;
-  const matchSimple = valor.match(/^(\d{2}):(\d{2})/);
-  if (matchSimple) return `${matchSimple[1]}:${matchSimple[2]}`;
-  return valor;
-}
-
-// Instante real de fin de la reserva, para comparar contra "ahora". Misma
-// convención que el resto del wizard: la hora que figura en el string (antes
-// de la Z) es la hora literal de Santo Tomé, no se aplica corrimiento de huso.
-function finInstante(item: AlquilerHistorial): Date {
-  const fechaPart = item.fecha.slice(0, 10);
-  const horaFin   = extraerHoraMinuto(item.horaFin);
-  return new Date(`${fechaPart}T${horaFin}:00.000Z`);
 }
 
 function calcularDuracion(inicio: string, fin: string): string {

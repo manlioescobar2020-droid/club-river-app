@@ -128,3 +128,7 @@ export function setupNotificationListeners(
     tappedSub.remove();
   };
 }
+
+export function getLastNotificationResponse(): Promise<Notifications.NotificationResponse | null> {
+  return Notifications.getLastNotificationResponseAsync();
+}

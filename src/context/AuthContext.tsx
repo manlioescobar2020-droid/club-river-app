@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { authService } from '../services/authService';
 import { colors } from '../theme';
 import { registerAndSendPushToken, PushRegistrationResult } from '../services/notificationsService';
@@ -69,19 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       registerAndSendPushToken(token)
         .then(result => {
           setPushDiag(result);
-          // TEMPORAL: diagnóstico push — sacar después de confirmar que el registro
-          // funciona en producción (ver conversación sobre push tokens no registrados).
-          if (result.ok) {
-            Alert.alert('Push OK', 'Token de notificaciones registrado correctamente.');
-          } else {
-            Alert.alert('Push falló', `Paso: ${result.step}\nDetalle: ${result.detail}`);
+          if (!result.ok) {
+            console.warn(`[Push] Registro falló — paso: ${result.step}, detalle: ${result.detail}`);
           }
         })
         .catch((error) => {
           const detail = error?.message ?? String(error);
           setPushDiag({ ok: false, step: 'backend-error', detail });
-          // TEMPORAL: diagnóstico push — sacar después
-          Alert.alert('Push falló', `Error inesperado: ${detail}`);
+          console.warn(`[Push] Registro falló — paso: backend-error, detalle: ${detail}`);
         });
     }
   }

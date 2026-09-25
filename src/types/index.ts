@@ -5,6 +5,7 @@ export type UserRol =
   | "SOCIO"
   | "PARTICIPANTE"
   | "TUTOR_RESPONSABLE"
+  | "PORTERO"
 
 export type Usuario = {
   id: string

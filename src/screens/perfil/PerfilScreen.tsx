@@ -91,7 +91,9 @@ export default function PerfilScreen() {
 
   // ── Con sesión ────────────────────────────────────────────────────────
   const inicial = (user.nombre?.[0] ?? '').toUpperCase();
-  const esSocio = user.rol === 'SOCIO';
+  const esSocio   = user.rol === 'SOCIO';
+  // PORTERO: solo datos básicos + cerrar sesión (no pega a endpoints de socio).
+  const esPortero = user.rol === 'PORTERO';
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
@@ -133,65 +135,69 @@ export default function PerfilScreen() {
       </View>
 
       {/* Mi Cuenta — SOCIO y PARTICIPANTE */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>MI CUENTA</Text>
-        <View style={styles.sectionCard}>
-          <InfoRow
-            icon="qr-code-outline"
-            label="Mi Carnet"
-            onPress={() => navigation.navigate('MiCarnet')}
-          />
-          {esSocio && (
-            <>
-              <View style={styles.rowDivider} />
-              <InfoRow
-                icon="calendar-outline"
-                label="Mis Alquileres"
-                onPress={() => navigation.navigate('AlquileresHistorial')}
-              />
-              {user.esTutor && (
-                <>
-                  <View style={styles.rowDivider} />
-                  <InfoRow
-                    icon="people-outline"
-                    label="Participantes a cargo"
-                    onPress={() => navigation.navigate('ParticipantesACargo')}
-                  />
-                </>
-              )}
-            </>
-          )}
+      {!esPortero && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>MI CUENTA</Text>
+          <View style={styles.sectionCard}>
+            <InfoRow
+              icon="qr-code-outline"
+              label="Mi Carnet"
+              onPress={() => navigation.navigate('MiCarnet')}
+            />
+            {esSocio && (
+              <>
+                <View style={styles.rowDivider} />
+                <InfoRow
+                  icon="calendar-outline"
+                  label="Mis Alquileres"
+                  onPress={() => navigation.navigate('AlquileresHistorial')}
+                />
+                {user.esTutor && (
+                  <>
+                    <View style={styles.rowDivider} />
+                    <InfoRow
+                      icon="people-outline"
+                      label="Participantes a cargo"
+                      onPress={() => navigation.navigate('ParticipantesACargo')}
+                    />
+                  </>
+                )}
+              </>
+            )}
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Configuración */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>CONFIGURACIÓN</Text>
-        <View style={styles.sectionCard}>
-          <InfoRow
-            icon="lock-closed-outline"
-            label="Cambiar Contraseña"
-            onPress={() => navigation.navigate('CambiarContrasena')}
-          />
-          <View style={styles.rowDivider} />
-          <InfoRow
-            icon="notifications-outline"
-            label="Notificaciones"
-            onPress={() => Alert.alert(
-              'Notificaciones',
-              'Las notificaciones push se configuran desde los ajustes de tu dispositivo.'
-            )}
-          />
-          <View style={styles.rowDivider} />
-          <InfoRow
-            icon="help-circle-outline"
-            label="Ayuda y Soporte"
-            onPress={() => Linking.openURL(
-              'https://wa.me/5493756415586?text=Hola,%20necesito%20ayuda%20con%20la%20app'
-            )}
-          />
+      {!esPortero && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>CONFIGURACIÓN</Text>
+          <View style={styles.sectionCard}>
+            <InfoRow
+              icon="lock-closed-outline"
+              label="Cambiar Contraseña"
+              onPress={() => navigation.navigate('CambiarContrasena')}
+            />
+            <View style={styles.rowDivider} />
+            <InfoRow
+              icon="notifications-outline"
+              label="Notificaciones"
+              onPress={() => Alert.alert(
+                'Notificaciones',
+                'Las notificaciones push se configuran desde los ajustes de tu dispositivo.'
+              )}
+            />
+            <View style={styles.rowDivider} />
+            <InfoRow
+              icon="help-circle-outline"
+              label="Ayuda y Soporte"
+              onPress={() => Linking.openURL(
+                'https://wa.me/5493756415586?text=Hola,%20necesito%20ayuda%20con%20la%20app'
+              )}
+            />
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Cerrar sesión */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.75}>

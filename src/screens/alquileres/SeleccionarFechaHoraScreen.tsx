@@ -12,7 +12,7 @@ import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { useAlquiler } from '../../context/AlquilerContext';
 import { alquileresService } from '../../services/alquileresService';
 import { HORARIOS_DISPONIBLES } from '../../constants/alquileres';
-import { labelTipoEspacio } from '../../types/alquileres';
+import { labelTipoEspacio } from '../../utils/etiquetas';
 import ProgressSteps from '../../components/alquileres/ProgressSteps';
 import { colors, radius, typography } from '../../theme';
 

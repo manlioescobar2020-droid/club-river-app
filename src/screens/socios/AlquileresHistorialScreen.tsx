@@ -16,6 +16,7 @@ import { sociosService } from '../../services/sociosService';
 import { AlquilerHistorial, MovimientoSaldo } from '../../types/socios';
 import { colors, radius, typography } from '../../theme';
 import { extraerHoraMinuto, finInstante } from '../../utils/fechas';
+import { labelTipoEspacio } from '../../utils/etiquetas';
 
 const DIAS  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -42,10 +43,6 @@ function calcularDuracion(inicio: string, fin: string): string {
 function formatMonto(monto: string): string {
   return `$${Math.round(parseFloat(monto)).toLocaleString('es-AR')}`;
 }
-
-const TIPO_ESPACIO: Record<string, string> = {
-  SALON: 'Salón', CANCHA: 'Cancha', SALON_CANCHA: 'Salón + Cancha',
-};
 
 const ESTADO_CONFIG: Record<string, { bg: string; color: string; label: string }> = {
   PAGADO:    { bg: colors.greenDim,  color: colors.green,  label: 'Pagado'    },
@@ -137,7 +134,7 @@ export default function AlquileresHistorialScreen() {
         </View>
 
         <View style={styles.detallesRow}>
-          <Text style={styles.tipoEspacio}>{TIPO_ESPACIO[item.tipoEspacio] ?? item.tipoEspacio}</Text>
+          <Text style={styles.tipoEspacio}>{labelTipoEspacio(item.tipoEspacio)}</Text>
           <View style={[styles.categBadge, esPrivado ? styles.categPrivado : styles.categPublico]}>
             <Text style={[styles.categText, esPrivado ? styles.categTextPrivado : styles.categTextPublico]}>
               {esPrivado ? 'Evento Privado' : 'Evento Público'}

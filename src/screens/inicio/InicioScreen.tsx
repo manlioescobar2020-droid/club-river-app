@@ -404,7 +404,7 @@ export default function InicioScreen() {
           <Animated.View style={[styles.section, misAlqAnim]}>
             <TouchableOpacity
               style={styles.alqCard}
-              onPress={() => navigation.navigate('Perfil', { screen: 'AlquileresHistorial' })}
+              onPress={() => navigation.navigate('Perfil', { screen: 'AlquileresHistorial', initial: false })}
               activeOpacity={0.8}
             >
               <View style={[styles.quickIcon, styles.quickIconDefault, { width: 56, height: 56, borderRadius: 10 }]}>

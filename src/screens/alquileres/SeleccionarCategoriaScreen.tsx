@@ -12,7 +12,8 @@ import { CATEGORIAS_EVENTO } from '../../constants/alquileres';
 import ProgressSteps from '../../components/alquileres/ProgressSteps';
 import OptionCard from '../../components/alquileres/OptionCard';
 import { colors, radius, typography } from '../../theme';
-import { CategoriaEvento, labelTipoEspacio, labelDeporte } from '../../types/alquileres';
+import { CategoriaEvento } from '../../types/alquileres';
+import { labelTipoEspacio, labelDeporte } from '../../utils/etiquetas';
 
 const STEPS = [
   { number: 1, label: 'Espacio' },

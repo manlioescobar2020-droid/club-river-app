@@ -16,12 +16,9 @@ import { porteroService } from '../../services/porteroService';
 import { AgendaLlaveItem } from '../../types/portero';
 import { colors, radius, typography } from '../../theme';
 import { extraerHoraMinuto, finInstante } from '../../utils/fechas';
+import { etiquetaEspacio } from '../../utils/etiquetas';
 
 const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-
-const TIPO_ESPACIO: Record<string, string> = {
-  SALON: 'Salón', CANCHA: 'Cancha', SALON_CANCHA: 'Salón + Cancha',
-};
 
 const pad = (n: number) => n.toString().padStart(2, '0');
 
@@ -42,17 +39,6 @@ function tituloDia(clave: string, hoy: string, manana: string): string {
   const [y, m, d] = clave.split('-').map(Number);
   const diaSemana = DIAS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
   return `${diaSemana} ${pad(d)}/${pad(m)}`;
-}
-
-function formatDeporte(deporte: string): string {
-  const texto = deporte.replace(/_/g, ' ').toLowerCase();
-  return texto.charAt(0).toUpperCase() + texto.slice(1);
-}
-
-function describirEspacio(item: AgendaLlaveItem): string {
-  const espacio = TIPO_ESPACIO[item.tipoEspacio] ?? item.tipoEspacio;
-  const tieneCancha = item.tipoEspacio === 'CANCHA' || item.tipoEspacio === 'SALON_CANCHA';
-  return tieneCancha && item.deporteCancha ? `${espacio} · ${formatDeporte(item.deporteCancha)}` : espacio;
 }
 
 interface Grupo {
@@ -141,7 +127,7 @@ export default function AgendaLlavesScreen() {
     return (
       <View style={[styles.card, terminada && styles.cardTerminada, resaltado && styles.cardResaltada]}>
         <View style={styles.cardHeader}>
-          <Text style={styles.espacio}>{describirEspacio(item)}</Text>
+          <Text style={styles.espacio}>{etiquetaEspacio(item.tipoEspacio, item.deporteCancha)}</Text>
           <View style={styles.horarioRow}>
             <Ionicons name="time-outline" size={14} color={colors.muted} />
             <Text style={styles.horarioText}>

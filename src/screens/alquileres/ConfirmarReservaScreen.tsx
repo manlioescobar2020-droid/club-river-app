@@ -13,7 +13,7 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAlquiler } from '../../context/AlquilerContext';
 import { useAuth } from '../../context/AuthContext';
-import { labelTipoEspacio, labelDeporte } from '../../types/alquileres';
+import { labelTipoEspacio, labelDeporte } from '../../utils/etiquetas';
 import { alquileresService } from '../../services/alquileresService';
 import { sociosService } from '../../services/sociosService';
 import ProgressSteps from '../../components/alquileres/ProgressSteps';

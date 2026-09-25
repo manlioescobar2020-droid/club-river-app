@@ -132,3 +132,7 @@ export function setupNotificationListeners(
 export function getLastNotificationResponse(): Promise<Notifications.NotificationResponse | null> {
   return Notifications.getLastNotificationResponseAsync();
 }
+
+export function clearLastNotificationResponse(): Promise<void> {
+  return Notifications.clearLastNotificationResponseAsync();
+}

@@ -1,7 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { View, ActivityIndicator, Linking } from 'react-native';
 import type { NotificationResponse } from 'expo-notifications';
-import { setupNotificationListeners, getLastNotificationResponse } from './src/services/notificationsService';
+import {
+  setupNotificationListeners,
+  getLastNotificationResponse,
+  clearLastNotificationResponse,
+} from './src/services/notificationsService';
 import { AlquilerProvider } from './src/context/AlquilerContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ChatProvider, useChatContext } from './src/context/ChatContext';
@@ -62,16 +66,22 @@ function NotificationHandler() {
       const respuestaId = response.notification.request.identifier;
       if (procesadasRef.current.has(respuestaId)) return;
 
+      // Procesada: se limpia para que getLastNotificationResponse no la devuelva otra vez.
+      const marcarProcesada = () => {
+        procesadasRef.current.add(respuestaId);
+        clearLastNotificationResponse().catch(() => {});
+      };
+
       const alquilerId = (response.notification.request.content.data as any)?.alquilerId;
       if (alquilerId == null) {
-        procesadasRef.current.add(respuestaId);
+        marcarProcesada();
         return;
       }
 
       const intentar = (restantes: number) => {
         if (!activo) return;
         if (navigationRef.isReady()) {
-          procesadasRef.current.add(respuestaId);
+          marcarProcesada();
           abrirAgenda(alquilerId);
         } else if (restantes > 0) {
           timers.push(setTimeout(() => intentar(restantes - 1), NAV_RETRY_MS));

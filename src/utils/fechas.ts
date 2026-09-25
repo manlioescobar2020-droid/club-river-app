@@ -10,9 +10,25 @@ export function extraerHoraMinuto(valor: string): string {
   return valor;
 }
 
+function aMinutos(hhmm: string): [number, number] {
+  const [h, m] = hhmm.split(':').map(Number);
+  return [h, m];
+}
+
 // Instante real de fin de la reserva, para comparar contra "ahora".
-export function finInstante(item: { fecha: string; horaFin: string }): Date {
-  const fechaPart = item.fecha.slice(0, 10);
-  const horaFin   = extraerHoraMinuto(item.horaFin);
-  return new Date(`${fechaPart}T${horaFin}:00.000Z`);
+// El día sale de los componentes UTC de `fecha` (T00:00Z y T03:00Z son el mismo día)
+// y la hora literal se arma en hora LOCAL. Si horaFin <= horaInicio, la reserva
+// cruza la medianoche y termina al día siguiente.
+export function finInstante(item: { fecha: string; horaInicio?: string; horaFin: string }): Date {
+  const f = new Date(item.fecha);
+  const y = f.getUTCFullYear();
+  const m = f.getUTCMonth();
+  const d = f.getUTCDate();
+
+  const [hf, mf] = aMinutos(extraerHoraMinuto(item.horaFin));
+  if (item.horaInicio) {
+    const [hi, mi] = aMinutos(extraerHoraMinuto(item.horaInicio));
+    if (hf * 60 + mf <= hi * 60 + mi) return new Date(y, m, d + 1, hf, mf);
+  }
+  return new Date(y, m, d, hf, mf);
 }

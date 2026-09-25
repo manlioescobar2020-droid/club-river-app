@@ -92,7 +92,7 @@ export default function PerfilScreen() {
   // ── Con sesión ────────────────────────────────────────────────────────
   const inicial = (user.nombre?.[0] ?? '').toUpperCase();
   const esSocio   = user.rol === 'SOCIO';
-  // PORTERO: solo datos básicos + cerrar sesión (no pega a endpoints de socio).
+  // PORTERO: sin MI CUENTA (pega a endpoints de socio); conserva configuración y cerrar sesión.
   const esPortero = user.rol === 'PORTERO';
 
   return (
@@ -169,35 +169,33 @@ export default function PerfilScreen() {
       )}
 
       {/* Configuración */}
-      {!esPortero && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>CONFIGURACIÓN</Text>
-          <View style={styles.sectionCard}>
-            <InfoRow
-              icon="lock-closed-outline"
-              label="Cambiar Contraseña"
-              onPress={() => navigation.navigate('CambiarContrasena')}
-            />
-            <View style={styles.rowDivider} />
-            <InfoRow
-              icon="notifications-outline"
-              label="Notificaciones"
-              onPress={() => Alert.alert(
-                'Notificaciones',
-                'Las notificaciones push se configuran desde los ajustes de tu dispositivo.'
-              )}
-            />
-            <View style={styles.rowDivider} />
-            <InfoRow
-              icon="help-circle-outline"
-              label="Ayuda y Soporte"
-              onPress={() => Linking.openURL(
-                'https://wa.me/5493756415586?text=Hola,%20necesito%20ayuda%20con%20la%20app'
-              )}
-            />
-          </View>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>CONFIGURACIÓN</Text>
+        <View style={styles.sectionCard}>
+          <InfoRow
+            icon="lock-closed-outline"
+            label="Cambiar Contraseña"
+            onPress={() => navigation.navigate('CambiarContrasena')}
+          />
+          <View style={styles.rowDivider} />
+          <InfoRow
+            icon="notifications-outline"
+            label="Notificaciones"
+            onPress={() => Alert.alert(
+              'Notificaciones',
+              'Las notificaciones push se configuran desde los ajustes de tu dispositivo.'
+            )}
+          />
+          <View style={styles.rowDivider} />
+          <InfoRow
+            icon="help-circle-outline"
+            label="Ayuda y Soporte"
+            onPress={() => Linking.openURL(
+              'https://wa.me/5493756415586?text=Hola,%20necesito%20ayuda%20con%20la%20app'
+            )}
+          />
         </View>
-      )}
+      </View>
 
       {/* Cerrar sesión */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.75}>
